@@ -1,0 +1,10 @@
+#VS generated files
+.vs/
+Debug/
+Release/
+x64/
+AssimpWithLight/Debug
+AssimpWithLight/Release
+AssimpWithLight/x64
+AssimpWithLight.VC.db
+AssimpWithLight.VC.VC.opendb
