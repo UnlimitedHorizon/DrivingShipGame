@@ -118,9 +118,10 @@ int main(int argc, char** argv)
 		lastFrame = currentFrame;
 		glfwPollEvents(); // 处理例如鼠标 键盘等事件
 		do_movement(); // 根据用户操作情况 更新相机属性
+		objModel.animation(deltaTime);
 
 		// 清除颜色缓冲区 重置为指定颜色
-		glClearColor(0.18f, 0.04f, 0.14f, 1.0f);
+		glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 		shader.use();
@@ -132,8 +133,8 @@ int main(int argc, char** argv)
 		GLint attConstant = glGetUniformLocation(shader.programId, "light.constant");
 		GLint attLinear = glGetUniformLocation(shader.programId, "light.linear");
 		GLint attQuadratic = glGetUniformLocation(shader.programId, "light.quadratic");
-		glUniform3f(lightAmbientLoc, 0.5f, 0.5f, 0.5f);
-		glUniform3f(lightDiffuseLoc, 0.7f, 0.7f, 0.7f);
+		glUniform3f(lightAmbientLoc, 1.0f, 1.0f, 1.0f);
+		glUniform3f(lightDiffuseLoc, 1.0f, 1.0f, 1.0f);
 		glUniform3f(lightSpecularLoc, 1.0f, 1.0f, 1.0f);
 		glUniform3f(lightPosLoc, lampPos.x, lampPos.y, lampPos.z);
 		// 设置衰减系数

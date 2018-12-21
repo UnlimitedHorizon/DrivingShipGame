@@ -110,7 +110,7 @@ public:
 	{
 		// 不要再这里释放VBO等空间 因为Mesh对象传递时 临时对象销毁后这里会清理VBO等空间
 	}
-private:
+
 	std::vector<Vertex> vertData;
 	std::vector<GLuint> indices;
 	std::vector<Texture> textures;

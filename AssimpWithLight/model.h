@@ -5,8 +5,10 @@
 #include <assimp/Importer.hpp>
 #include <assimp/scene.h>
 #include <assimp/postprocess.h>
+#include <math.h>
 #include "mesh.h"
 #include "texture.h"
+#include "matrix.h"
 
 /*
 * 代表一个模型 模型可以包含一个或多个Mesh
@@ -16,8 +18,12 @@ class Model
 public:
 	void draw(const Shader& shader) const
 	{
+		int tmp = -1;
 		for (std::vector<Mesh>::const_iterator it = this->meshes.begin(); this->meshes.end() != it; ++it)
 		{
+			tmp++;
+			/*if (tmp != propeller1 && tmp != propeller2)
+				continue;*/
 			it->draw(shader);
 		}
 	}
@@ -45,6 +51,28 @@ public:
 			std::cerr << "Error:Model::loadModel, process node failed."<< std::endl;
 			return false;
 		}
+		double max = -1e10;
+		for (int i = 0; i < meshes[propeller1].vertData.size(); ++i)
+		{
+			std::cout << meshes[propeller1].vertData[i].position[0] << " " <<
+				meshes[propeller1].vertData[i].position[1] << " " <<
+				meshes[propeller1].vertData[i].position[2] << " " << std::endl;
+		}
+		for (int i = 0; i < meshes[propeller1].vertData.size(); ++i)
+			if (meshes[propeller1].vertData[i].position[1] > max)
+			{
+				max = meshes[propeller1].vertData[i].position[1];
+				x1 = meshes[propeller1].vertData[i].position[0];
+				z1 = meshes[propeller1].vertData[i].position[2];
+			}
+		max = -1e10;
+		for (int i = 0; i < meshes[propeller2].vertData.size(); ++i)
+			if (meshes[propeller2].vertData[i].position[1] > max)
+			{
+				max = meshes[propeller2].vertData[i].position[1];
+				x2 = meshes[propeller2].vertData[i].position[0];
+				z2 = meshes[propeller2].vertData[i].position[2];
+			}
 		return true;
 	}
 	~Model()
@@ -53,6 +81,73 @@ public:
 		{
 			it->final();
 		}
+	}
+	void animation(GLfloat delta)
+	{
+		//return;
+		float thita = 2 * 2 * acos(-1) * delta;
+		//float thita = 0;
+		float co = cos(thita);
+		float si = sin(thita);
+		double min = 1e10;
+		for (int i = 0; i < meshes[propeller1].vertData.size(); ++i)
+			if (meshes[propeller1].vertData[i].position.z < min)
+			{
+				min = meshes[propeller1].vertData[i].position.z;
+				x1 = meshes[propeller1].vertData[i].position.x;
+				y1 = meshes[propeller1].vertData[i].position.y;
+			}
+		min = 1e10;
+		for (int i = 0; i < meshes[propeller2].vertData.size(); ++i)
+			if (meshes[propeller2].vertData[i].position.z < min)
+			{
+				min = meshes[propeller2].vertData[i].position.z;
+				x2 = meshes[propeller2].vertData[i].position.x;
+				y2 = meshes[propeller2].vertData[i].position.y;
+			}
+		for (int i = 0; i < meshes[propeller1].vertData.size(); ++i)
+		{
+			matrix4 tmp(meshes[propeller1].vertData[i].position.x, 0, 0, 0,
+				meshes[propeller1].vertData[i].position.y, 0, 0, 0,
+				meshes[propeller1].vertData[i].position.z, 0, 0, 0,
+				1, 0, 0, 0);
+			//tmp.print();
+			//matrix4 move1(1, 0, 0, -x1, 0, 1, 0, 0, 0, 0, 1, -z1, 0, 0, 0, 1);
+			//matrix4 move2(1, 0, 0, x1, 0, 1, 0, 0, 0, 0, 1, z1, 0, 0, 0, 1);
+			//matrix4 rotate(co, 0, si, 0, 0, 1, 0, 0, -si, 0, co, 0, 0, 0, 0, 1);
+			matrix4 move1(1, 0, 0, -x1, 0, 1, 0, -y1, 0, 0, 1, 0, 0, 0, 0, 1);
+			matrix4 move2(1, 0, 0, x1, 0, 1, 0, y1, 0, 0, 1, 0, 0, 0, 0, 1);
+			matrix4 rotate(co, -si, 0, 0, si, co, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1);
+			tmp = move2 * rotate * move1 * tmp;
+			for (int j = 0; j < 3; ++j)
+				meshes[propeller1].vertData[i].position[j] = tmp.a[j][0];
+		}
+		for (int i = 0; i < meshes[propeller2].vertData.size(); ++i)
+		{
+			matrix4 tmp(meshes[propeller2].vertData[i].position[0], 0, 0, 0,
+				meshes[propeller2].vertData[i].position[1], 0, 0, 0,
+				meshes[propeller2].vertData[i].position[2], 0, 0, 0,
+				1, 0, 0, 0);
+			//matrix4 move1(1, 0, 0, -x2, 0, 1, 0, 0, 0, 0, 1, -z2, 0, 0, 0, 1);
+			//matrix4 move2(1, 0, 0, x2, 0, 1, 0, 0, 0, 0, 1, z2, 0, 0, 0, 1);
+			//matrix4 rotate(co, 0, si, 0, 0, 1, 0, 0, -si, 0, co, 0, 0, 0, 0, 1);
+			matrix4 move1(1, 0, 0, -x2, 0, 1, 0, -y2, 0, 0, 1, 0, 0, 0, 0, 1);
+			matrix4 move2(1, 0, 0, x2, 0, 1, 0, y2, 0, 0, 1, 0, 0, 0, 0, 1);
+			matrix4 rotate(co, -si, 0, 0, si, co, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1);
+			tmp = move2 * rotate * move1 * tmp;
+			for (int j = 0; j < 3; ++j)
+				meshes[propeller2].vertData[i].position[j] = tmp.a[j][0];
+		}
+		meshes[propeller1].final();
+		meshes[propeller1].VAOId = 0;
+		meshes[propeller1].VBOId = 0;
+		meshes[propeller1].EBOId = 0;
+		meshes[propeller1].setupMesh();
+		meshes[propeller2].final();
+		meshes[propeller2].VAOId = 0;
+		meshes[propeller2].VBOId = 0;
+		meshes[propeller2].EBOId = 0;
+		meshes[propeller2].setupMesh();
 	}
 private:
 	/*
@@ -64,6 +159,12 @@ private:
 		{
 			return false;
 		}
+		std::cout << node->mName.data << std::endl;
+		int flag = 0;
+		if (node->mName == aiString("g Propeller_meshShape_0419"))
+			flag = 1;
+		if (node->mName == aiString("g Propeller_meshShape_0423"))
+			flag = 2;
 		// 先处理自身结点
 		for (size_t i = 0; i < node->mNumMeshes; ++i)
 		{
@@ -75,6 +176,10 @@ private:
 				if (this->processMesh(meshPtr, sceneObjPtr, meshObj))
 				{
 					this->meshes.push_back(meshObj);
+					if (flag == 1)
+						propeller1 = this->meshes.size() - 1;
+					if (flag == 2)
+						propeller2 = this->meshes.size() - 1;
 				}
 			}
 		}
@@ -207,6 +312,8 @@ private:
 	std::string modelFileDir; // 保存模型文件的文件夹路径
 	typedef std::map<std::string, Texture> LoadedTextMapType; // key = texture file path
 	LoadedTextMapType loadedTextureMap; // 保存已经加载的纹理
+	int propeller1, propeller2;
+	double x1, y1, z1, x2, y2, z2;
 };
 
 #endif
