@@ -6,9 +6,12 @@
 #include <assimp/scene.h>
 #include <assimp/postprocess.h>
 #include <math.h>
+#include <cstdlib>
+#include <ctime>
 #include "mesh.h"
 #include "texture.h"
 #include "matrix.h"
+#include "particles.h"
 
 /*
 * 代表一个模型 模型可以包含一个或多个Mesh
@@ -16,16 +19,17 @@
 class Model
 {
 public:
-	void draw(const Shader& shader) const
+	void draw(const Shader& shader)
 	{
 		int tmp = -1;
 		for (std::vector<Mesh>::const_iterator it = this->meshes.begin(); this->meshes.end() != it; ++it)
 		{
 			tmp++;
-			/*if (tmp != propeller1 && tmp != propeller2)
-				continue;*/
+			//if (tmp != propeller1 && tmp != propeller2)
+			//	continue;
 			it->draw(shader);
 		}
+		smoke.draw(shader);
 	}
 	bool loadModel(const std::string& filePath)
 	{
@@ -129,6 +133,28 @@ public:
 		}
 		x6 = (max - min) * 0.5 + min;
 		z6 = (maxz - minz) / 7.0 * 5.0 + minz;
+		//chimney position
+		max = -1e10; maxz = -1e10; minz = 1e10; min = 1e10;
+		double maxy = -1e10, miny = 1e10;
+		for (int i = 0; i < meshes[chimney].vertData.size(); ++i)
+		{
+			if (meshes[chimney].vertData[i].position.x < min)
+				min = meshes[chimney].vertData[i].position.x;
+			if (meshes[chimney].vertData[i].position.x > max)
+				max = meshes[chimney].vertData[i].position.x;
+			if (meshes[chimney].vertData[i].position.z < minz)
+				minz = meshes[chimney].vertData[i].position.z;
+			if (meshes[chimney].vertData[i].position.z > maxz)
+				maxz = meshes[chimney].vertData[i].position.z;
+			if (meshes[chimney].vertData[i].position.y < miny)
+				miny = meshes[chimney].vertData[i].position.y;
+			if (meshes[chimney].vertData[i].position.y > maxy)
+				maxy = meshes[chimney].vertData[i].position.y;
+		}
+		x7 = (max - min) * 0.5 + min;
+		z7 = (maxz - minz) * 0.25 + minz;
+		y7 = (maxy - miny) * 4.0 / 7.0 + miny;
+		srand(time(0));
 		return true;
 	}
 	~Model()
@@ -266,6 +292,15 @@ public:
 		meshes[back_gun2].VBOId = 0;
 		meshes[back_gun2].EBOId = 0;
 		meshes[back_gun2].setupMesh();
+		//smoke animation
+		smoke.animation(delta);
+		for (int i = 0; i < delta * 1000; ++i)
+		{
+			particle tmp(1.0, 1.0, 1.0, x7, y7, z7,
+				(rand() - RAND_MAX / 2.0) / (RAND_MAX /2.0) * 0.05, 0.3, (rand() - RAND_MAX / 2.0) / (RAND_MAX / 2.0) * 0.05,
+				0, 0, 0, 0.5, 0.5, 0.5);
+			smoke.particles.push_back(tmp);
+		}
 	}
 private:
 	/*
@@ -291,6 +326,8 @@ private:
 			flag = 5;
 		if (node->mName == aiString("g gunShape_0391"))
 			flag = 6;
+		if (node->mName == aiString("g MidFrontShape"))
+			flag = 7;
 		// 先处理自身结点
 		for (size_t i = 0; i < node->mNumMeshes; ++i)
 		{
@@ -314,6 +351,8 @@ private:
 						back_gun1 = this->meshes.size() - 1;
 					if (flag == 6)
 						back_gun2 = this->meshes.size() - 1;
+					if (flag == 7)
+						chimney = this->meshes.size() - 1;
 				}
 			}
 		}
@@ -444,6 +483,7 @@ private:
 private:
 	std::vector<Mesh> meshes; // 保存Mesh
 	std::string modelFileDir; // 保存模型文件的文件夹路径
+	particle_system smoke;
 	typedef std::map<std::string, Texture> LoadedTextMapType; // key = texture file path
 	LoadedTextMapType loadedTextureMap; // 保存已经加载的纹理
 	int propeller1, propeller2;
@@ -452,6 +492,8 @@ private:
 	double x3, y3, z3, x4, y4, z4;
 	int back_gun1, back_gun2;
 	double x5, y5, z5, x6, y6, z6;
+	int chimney;
+	double x7, y7, z7;
 };
 
 #endif
