@@ -22,6 +22,8 @@
 #include "texture.h"
 // 加载模型的类
 #include "model.h"
+// 水面效果类
+#include "fluid.h"
 
 // 键盘回调函数原型声明
 void key_callback(GLFWwindow* window, int key, int scancode, int action, int mods);
@@ -60,7 +62,6 @@ void particles_animation(GLfloat delta, const Model &obj, particle_system p[])
 
 int main(int argc, char** argv)
 {
-	
 	if (!glfwInit())	// 初始化glfw库
 	{
 		std::cout << "Error::GLFW could not initialize GLFW!" << std::endl;
@@ -123,10 +124,25 @@ int main(int argc, char** argv)
 	// Section2 准备着色器程序
 	Shader shader("model.vertex", "model.frag");
 	Shader particle_shader("particle.vertex", "particle.frag");
+	Shader fluidShader("texture.vs", "texture.fs");
+
+	srand(1);
+	int rowSize = 10, columnSize = 10;    // 横纵网格数
+	int step = 1;    // 网格边长
+	GLfloat refreshTime = 0.08f;  // 刷新时间
+	Fluid f(rowSize, columnSize, step, refreshTime, 1, 0.2, 0);
+	glm::mat4 modelFluid;
+	float transX = -rowSize * step / 2;
+	float transY = -0.8f;
+	float transZ = -columnSize * step / 2;
+	modelFluid = glm::translate(modelFluid, glm::vec3(transX, transY, transZ)); // 调整位置
+	float scaleX = 1.0f;
+	float scaleY = 0.05f;
+	float scaleZ = 1.0f;
+	modelFluid = glm::scale(modelFluid, glm::vec3(scaleX, scaleY, scaleZ)); // 调整比例
 
 	glEnable(GL_DEPTH_TEST);
-	//glEnable(GL_CULL_FACE);
-	// 开始游戏主循环
+	glEnable(GL_CULL_FACE);
 	while (!glfwWindowShouldClose(window))
 	{
 		GLfloat currentFrame = (GLfloat)glfwGetTime();
@@ -174,12 +190,11 @@ int main(int argc, char** argv)
 		glUniformMatrix4fv(glGetUniformLocation(shader.programId, "model"),
 			1, GL_FALSE, glm::value_ptr(model));
 		// 这里填写场景绘制代码
-		objModel.draw(shader); // 绘制物体
-		/*for (int i = 0; i < 1; ++i)
-			particle_systems[i].draw(shader);*/
+		objModel.draw(shader);
 
 		glBindVertexArray(0);
 		glUseProgram(0);
+
 
 		particle_shader.use();
 		// 设置光源属性 点光源
@@ -219,6 +234,31 @@ int main(int argc, char** argv)
 
 		glBindVertexArray(0);
 		glUseProgram(0);
+
+
+		fluidShader.use();
+		// 设置观察者位置
+		GLint viewPosLocFluid = glGetUniformLocation(fluidShader.programId, "viewPos");
+		glUniform3f(viewPosLocFluid, camera.position.x, camera.position.y, camera.position.z);
+		glm::mat4 projectionFluid = glm::perspective(camera.mouse_zoom,
+			(GLfloat)(WINDOW_WIDTH) / WINDOW_HEIGHT, 1.0f, 100.0f); // 投影矩阵
+		glm::mat4 viewFluid = camera.getViewMatrix(); // 视变换矩阵
+		glUniformMatrix4fv(glGetUniformLocation(fluidShader.programId, "projection"),
+			1, GL_FALSE, glm::value_ptr(projectionFluid));
+		glUniformMatrix4fv(glGetUniformLocation(fluidShader.programId, "view"),
+			1, GL_FALSE, glm::value_ptr(viewFluid));
+		glUniformMatrix4fv(glGetUniformLocation(fluidShader.programId, "model"),
+			1, GL_FALSE, glm::value_ptr(modelFluid));
+		// 这里填写场景绘制代码
+		f.animation(deltaTime);  // 水面刷新
+		glDisable(GL_CULL_FACE);
+		f.draw(fluidShader);
+		glEnable(GL_CULL_FACE);
+
+		glBindVertexArray(0);
+		glUseProgram(0);
+
+
 		glfwSwapBuffers(window); // 交换缓存
 	}
 	// 释放资源
