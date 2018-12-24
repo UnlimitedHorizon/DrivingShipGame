@@ -21,15 +21,8 @@ class Model
 public:
 	void draw(const Shader& shader)
 	{
-		int tmp = -1;
 		for (std::vector<Mesh>::const_iterator it = this->meshes.begin(); this->meshes.end() != it; ++it)
-		{
-			tmp++;
-			//if (tmp != propeller1 && tmp != propeller2)
-			//	continue;
 			it->draw(shader);
-		}
-		smoke.draw(shader);
 	}
 	bool loadModel(const std::string& filePath)
 	{
@@ -292,15 +285,6 @@ public:
 		meshes[back_gun2].VBOId = 0;
 		meshes[back_gun2].EBOId = 0;
 		meshes[back_gun2].setupMesh();
-		//smoke animation
-		smoke.animation(delta);
-		for (int i = 0; i < delta * 1000; ++i)
-		{
-			particle tmp(1.0, 1.0, 1.0, x7, y7, z7,
-				(rand() - RAND_MAX / 2.0) / (RAND_MAX /2.0) * 0.05, 0.3, (rand() - RAND_MAX / 2.0) / (RAND_MAX / 2.0) * 0.05,
-				0, 0, 0, 0.5, 0.5, 0.5);
-			smoke.particles.push_back(tmp);
-		}
 	}
 private:
 	/*
@@ -483,9 +467,9 @@ private:
 private:
 	std::vector<Mesh> meshes; // 保存Mesh
 	std::string modelFileDir; // 保存模型文件的文件夹路径
-	particle_system smoke;
 	typedef std::map<std::string, Texture> LoadedTextMapType; // key = texture file path
 	LoadedTextMapType loadedTextureMap; // 保存已经加载的纹理
+public:
 	int propeller1, propeller2;
 	double x1, y1, z1, x2, y2, z2;
 	int front_gun1, front_gun2;

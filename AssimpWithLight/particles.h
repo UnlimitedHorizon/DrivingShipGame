@@ -68,8 +68,8 @@ public:
 	void draw(const Shader &shader)
 	{
 		//std::cout << particles.size() << std::endl;
-		//GLfloat *vertices = new GLfloat[7 * 12 * 3 * particles.size()];
-		GLfloat *vertices = new GLfloat[3 * 12 * 3 * particles.size()];
+		GLfloat *vertices = new GLfloat[7 * 12 * 3 * particles.size()];
+		//GLfloat *vertices = new GLfloat[3 * 12 * 3 * particles.size()];
 		int now = 0;
 		for (std::list<particle>::iterator it = particles.begin(); it != particles.end(); ++it)
 			for (int i = 0; i < 12; ++i)
@@ -78,23 +78,24 @@ public:
 					vertices[now++] = it->x + size * dx[which[i][j]];
 					vertices[now++] = it->y + size * dy[which[i][j]];
 					vertices[now++] = it->z + size * dz[which[i][j]];
-					/*vertices[now++] = it->r;
+					vertices[now++] = it->r;
 					vertices[now++] = it->g;
 					vertices[now++] = it->b;
-					vertices[now++] = it->fade;*/
+					vertices[now++] = it->fade;
 				}
 		GLuint VAOId, VBOId;
 		glGenVertexArrays(1, &VAOId);
 		glBindVertexArray(VAOId);
 		glGenBuffers(1, &VBOId);
 		glBindBuffer(GL_ARRAY_BUFFER, VBOId);
-		glBufferData(GL_ARRAY_BUFFER, sizeof(GLfloat) * 3 * 12 * 3 * particles.size(), vertices, GL_STATIC_DRAW);
+		glBufferData(GL_ARRAY_BUFFER, sizeof(GLfloat) * 7 * 12 * 3 * particles.size(), vertices, GL_STATIC_DRAW);
 		glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE,
-			0, (GLvoid*)0);
+			7 * sizeof(GL_FLOAT), (GLvoid*)0);
 		glEnableVertexAttribArray(0);
-		/*glVertexAttribPointer(1, 4, GL_FLOAT, GL_FALSE,
+		glVertexAttribPointer(1, 4, GL_FLOAT, GL_FALSE,
 			7 * sizeof(GL_FLOAT), (GLvoid*)(3 * sizeof(GL_FLOAT)));
-		glEnableVertexAttribArray(1);*/
+		glEnableVertexAttribArray(1);
+		glBindVertexArray(VAOId);
 		shader.use();
 		glDrawArrays(GL_TRIANGLES, 0, 3 * 12 * particles.size());
 		glBindVertexArray(0);
