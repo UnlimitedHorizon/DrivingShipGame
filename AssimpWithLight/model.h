@@ -5,8 +5,13 @@
 #include <assimp/Importer.hpp>
 #include <assimp/scene.h>
 #include <assimp/postprocess.h>
+#include <math.h>
+#include <cstdlib>
+#include <ctime>
 #include "mesh.h"
 #include "texture.h"
+#include "matrix.h"
+#include "particles.h"
 
 /*
 * 代表一个模型 模型可以包含一个或多个Mesh
@@ -14,12 +19,10 @@
 class Model
 {
 public:
-	void draw(const Shader& shader) const
+	void draw(const Shader& shader)
 	{
 		for (std::vector<Mesh>::const_iterator it = this->meshes.begin(); this->meshes.end() != it; ++it)
-		{
 			it->draw(shader);
-		}
 	}
 	bool loadModel(const std::string& filePath)
 	{
@@ -45,6 +48,106 @@ public:
 			std::cerr << "Error:Model::loadModel, process node failed."<< std::endl;
 			return false;
 		}
+		//propeller1 axis
+		double min = 1e10;
+		for (int i = 0; i < meshes[propeller1].vertData.size(); ++i)
+			if (meshes[propeller1].vertData[i].position.z < min)
+			{
+				min = meshes[propeller1].vertData[i].position.z;
+				x1 = meshes[propeller1].vertData[i].position.x;
+				y1 = meshes[propeller1].vertData[i].position.y;
+			}
+		//propeller2 axis
+		min = 1e10;
+		for (int i = 0; i < meshes[propeller2].vertData.size(); ++i)
+			if (meshes[propeller2].vertData[i].position.z < min)
+			{
+				min = meshes[propeller2].vertData[i].position.z;
+				x2 = meshes[propeller2].vertData[i].position.x;
+				y2 = meshes[propeller2].vertData[i].position.y;
+			}
+		//front gun 1 axis
+		double max = -1e10, maxz = -1e10, minz = 1e10; min = 1e10;
+		for (int i = 0; i < meshes[front_gun1].vertData.size(); ++i)
+		{
+			if (meshes[front_gun1].vertData[i].position.x < min)
+				min = meshes[front_gun1].vertData[i].position.x;
+			if (meshes[front_gun1].vertData[i].position.x > max)
+				max = meshes[front_gun1].vertData[i].position.x;
+			if (meshes[front_gun1].vertData[i].position.z < minz)
+				minz = meshes[front_gun1].vertData[i].position.z;
+			if (meshes[front_gun1].vertData[i].position.z > maxz)
+				maxz = meshes[front_gun1].vertData[i].position.z;
+		}
+		x3 = (max - min) * 0.5 + min;
+		z3 = (maxz - minz) / 7.0 * 2.0 + minz;
+		//front gun 2 axis
+		max = -1e10; maxz = -1e10; minz = 1e10; min = 1e10;
+		for (int i = 0; i < meshes[front_gun2].vertData.size(); ++i)
+		{
+			if (meshes[front_gun2].vertData[i].position.x < min)
+				min = meshes[front_gun1].vertData[i].position.x;
+			if (meshes[front_gun2].vertData[i].position.x > max)
+				max = meshes[front_gun2].vertData[i].position.x;
+			if (meshes[front_gun2].vertData[i].position.z < minz)
+				minz = meshes[front_gun2].vertData[i].position.z;
+			if (meshes[front_gun2].vertData[i].position.z > maxz)
+				maxz = meshes[front_gun2].vertData[i].position.z;
+		}
+		x4 = (max - min) * 0.5 + min;
+		z4 = (maxz - minz) / 7.0 * 2.0 + minz;
+		//back gun 1 axis
+		max = -1e10; maxz = -1e10; minz = 1e10; min = 1e10;
+		for (int i = 0; i < meshes[back_gun1].vertData.size(); ++i)
+		{
+			if (meshes[back_gun1].vertData[i].position.x < min)
+				min = meshes[back_gun1].vertData[i].position.x;
+			if (meshes[back_gun1].vertData[i].position.x > max)
+				max = meshes[back_gun1].vertData[i].position.x;
+			if (meshes[back_gun1].vertData[i].position.z < minz)
+				minz = meshes[back_gun1].vertData[i].position.z;
+			if (meshes[back_gun1].vertData[i].position.z > maxz)
+				maxz = meshes[back_gun1].vertData[i].position.z;
+		}
+		x5 = (max - min) * 0.5 + min;
+		z5 = (maxz - minz) / 7.0 * 5.0 + minz;
+		//back gun 2 axis
+		max = -1e10; maxz = -1e10; minz = 1e10; min = 1e10;
+		for (int i = 0; i < meshes[back_gun2].vertData.size(); ++i)
+		{
+			if (meshes[back_gun2].vertData[i].position.x < min)
+				min = meshes[back_gun2].vertData[i].position.x;
+			if (meshes[back_gun2].vertData[i].position.x > max)
+				max = meshes[back_gun2].vertData[i].position.x;
+			if (meshes[back_gun2].vertData[i].position.z < minz)
+				minz = meshes[back_gun2].vertData[i].position.z;
+			if (meshes[back_gun2].vertData[i].position.z > maxz)
+				maxz = meshes[back_gun2].vertData[i].position.z;
+		}
+		x6 = (max - min) * 0.5 + min;
+		z6 = (maxz - minz) / 7.0 * 5.0 + minz;
+		//chimney position
+		max = -1e10; maxz = -1e10; minz = 1e10; min = 1e10;
+		double maxy = -1e10, miny = 1e10;
+		for (int i = 0; i < meshes[chimney].vertData.size(); ++i)
+		{
+			if (meshes[chimney].vertData[i].position.x < min)
+				min = meshes[chimney].vertData[i].position.x;
+			if (meshes[chimney].vertData[i].position.x > max)
+				max = meshes[chimney].vertData[i].position.x;
+			if (meshes[chimney].vertData[i].position.z < minz)
+				minz = meshes[chimney].vertData[i].position.z;
+			if (meshes[chimney].vertData[i].position.z > maxz)
+				maxz = meshes[chimney].vertData[i].position.z;
+			if (meshes[chimney].vertData[i].position.y < miny)
+				miny = meshes[chimney].vertData[i].position.y;
+			if (meshes[chimney].vertData[i].position.y > maxy)
+				maxy = meshes[chimney].vertData[i].position.y;
+		}
+		x7 = (max - min) * 0.5 + min;
+		z7 = (maxz - minz) * 0.25 + minz;
+		y7 = (maxy - miny) * 4.0 / 7.0 + miny;
+		srand(time(0));
 		return true;
 	}
 	~Model()
@@ -53,6 +156,135 @@ public:
 		{
 			it->final();
 		}
+	}
+	void animation(GLfloat delta)
+	{
+		float thita = 2 * 2 * acos(-1) * delta;
+		float co = cos(thita);
+		float si = sin(thita);
+		//propeller1 animation
+		matrix4 move1(1, 0, 0, -x1, 0, 1, 0, -y1, 0, 0, 1, 0, 0, 0, 0, 1);
+		matrix4 move2(1, 0, 0, x1, 0, 1, 0, y1, 0, 0, 1, 0, 0, 0, 0, 1);
+		matrix4 rotate(co, -si, 0, 0, si, co, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1);
+		matrix4 last = move2 * rotate * move1;
+		for (int i = 0; i < meshes[propeller1].vertData.size(); ++i)
+		{
+			matrix4 tmp(meshes[propeller1].vertData[i].position.x, 0, 0, 0,
+				meshes[propeller1].vertData[i].position.y, 0, 0, 0,
+				meshes[propeller1].vertData[i].position.z, 0, 0, 0,
+				1, 0, 0, 0);
+			tmp = last * tmp;
+			for (int j = 0; j < 3; ++j)
+				meshes[propeller1].vertData[i].position[j] = tmp.a[j][0];
+		}
+		meshes[propeller1].final();
+		meshes[propeller1].VAOId = 0;
+		meshes[propeller1].VBOId = 0;
+		meshes[propeller1].EBOId = 0;
+		meshes[propeller1].setupMesh();
+		//propeller2 animation
+		move1 = matrix4(1, 0, 0, -x2, 0, 1, 0, -y2, 0, 0, 1, 0, 0, 0, 0, 1);
+		move2 = matrix4(1, 0, 0, x2, 0, 1, 0, y2, 0, 0, 1, 0, 0, 0, 0, 1);
+		rotate = matrix4(co, -si, 0, 0, si, co, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1);
+		last = move2 * rotate * move1;
+		for (int i = 0; i < meshes[propeller2].vertData.size(); ++i)
+		{
+			matrix4 tmp(meshes[propeller2].vertData[i].position[0], 0, 0, 0,
+				meshes[propeller2].vertData[i].position[1], 0, 0, 0,
+				meshes[propeller2].vertData[i].position[2], 0, 0, 0,
+				1, 0, 0, 0);
+			tmp = last * tmp;
+			for (int j = 0; j < 3; ++j)
+				meshes[propeller2].vertData[i].position[j] = tmp.a[j][0];
+		}
+		meshes[propeller2].final();
+		meshes[propeller2].VAOId = 0;
+		meshes[propeller2].VBOId = 0;
+		meshes[propeller2].EBOId = 0;
+		meshes[propeller2].setupMesh();
+		//front gun 1 animation
+		thita = 0.05 * 2 * acos(-1) * delta;
+		co = cos(thita);
+		si = sin(thita);
+		move1 = matrix4(1, 0, 0, -x3, 0, 1, 0, 0, 0, 0, 1, -z3, 0, 0, 0, 1);
+		move2 = matrix4(1, 0, 0, x3, 0, 1, 0, 0, 0, 0, 1, z3, 0, 0, 0, 1);
+		rotate = matrix4(co, 0, si, 0, 0, 1, 0, 0, -si, 0, co, 0, 0, 0, 0, 1);
+		last = move2 * rotate * move1;
+		for (int i = 0; i < meshes[front_gun1].vertData.size(); ++i)
+		{
+			matrix4 tmp(meshes[front_gun1].vertData[i].position.x, 0, 0, 0,
+				meshes[front_gun1].vertData[i].position.y, 0, 0, 0,
+				meshes[front_gun1].vertData[i].position.z, 0, 0, 0,
+				1, 0, 0, 0);
+			tmp = last * tmp;
+			for (int j = 0; j < 3; ++j)
+				meshes[front_gun1].vertData[i].position[j] = tmp.a[j][0];
+		}
+		meshes[front_gun1].final();
+		meshes[front_gun1].VAOId = 0;
+		meshes[front_gun1].VBOId = 0;
+		meshes[front_gun1].EBOId = 0;
+		meshes[front_gun1].setupMesh();
+		//front gun 2 animation
+		move1 = matrix4(1, 0, 0, -x4, 0, 1, 0, 0, 0, 0, 1, -z4, 0, 0, 0, 1);
+		move2 = matrix4(1, 0, 0, x4, 0, 1, 0, 0, 0, 0, 1, z4, 0, 0, 0, 1);
+		rotate = matrix4(co, 0, si, 0, 0, 1, 0, 0, -si, 0, co, 0, 0, 0, 0, 1);
+		last = move2 * rotate * move1;
+		for (int i = 0; i < meshes[front_gun2].vertData.size(); ++i)
+		{
+			matrix4 tmp(meshes[front_gun2].vertData[i].position.x, 0, 0, 0,
+				meshes[front_gun2].vertData[i].position.y, 0, 0, 0,
+				meshes[front_gun2].vertData[i].position.z, 0, 0, 0,
+				1, 0, 0, 0);
+			tmp = last * tmp;
+			for (int j = 0; j < 3; ++j)
+				meshes[front_gun2].vertData[i].position[j] = tmp.a[j][0];
+		}
+		meshes[front_gun2].final();
+		meshes[front_gun2].VAOId = 0;
+		meshes[front_gun2].VBOId = 0;
+		meshes[front_gun2].EBOId = 0;
+		meshes[front_gun2].setupMesh();
+		//back gun 1 animation
+		move1 = matrix4(1, 0, 0, -x5, 0, 1, 0, 0, 0, 0, 1, -z5, 0, 0, 0, 1);
+		move2 = matrix4(1, 0, 0, x5, 0, 1, 0, 0, 0, 0, 1, z5, 0, 0, 0, 1);
+		rotate = matrix4(co, 0, si, 0, 0, 1, 0, 0, -si, 0, co, 0, 0, 0, 0, 1);
+		last = move2 * rotate * move1;
+		for (int i = 0; i < meshes[back_gun1].vertData.size(); ++i)
+		{
+			matrix4 tmp(meshes[back_gun1].vertData[i].position.x, 0, 0, 0,
+				meshes[back_gun1].vertData[i].position.y, 0, 0, 0,
+				meshes[back_gun1].vertData[i].position.z, 0, 0, 0,
+				1, 0, 0, 0);
+			tmp = last * tmp;
+			for (int j = 0; j < 3; ++j)
+				meshes[back_gun1].vertData[i].position[j] = tmp.a[j][0];
+		}
+		meshes[back_gun1].final();
+		meshes[back_gun1].VAOId = 0;
+		meshes[back_gun1].VBOId = 0;
+		meshes[back_gun1].EBOId = 0;
+		meshes[back_gun1].setupMesh();
+		//back gun 2 animation
+		move1 = matrix4(1, 0, 0, -x6, 0, 1, 0, 0, 0, 0, 1, -z6, 0, 0, 0, 1);
+		move2 = matrix4(1, 0, 0, x6, 0, 1, 0, 0, 0, 0, 1, z6, 0, 0, 0, 1);
+		rotate = matrix4(co, 0, si, 0, 0, 1, 0, 0, -si, 0, co, 0, 0, 0, 0, 1);
+		last = move2 * rotate * move1;
+		for (int i = 0; i < meshes[back_gun2].vertData.size(); ++i)
+		{
+			matrix4 tmp(meshes[back_gun2].vertData[i].position.x, 0, 0, 0,
+				meshes[back_gun2].vertData[i].position.y, 0, 0, 0,
+				meshes[back_gun2].vertData[i].position.z, 0, 0, 0,
+				1, 0, 0, 0);
+			tmp = last * tmp;
+			for (int j = 0; j < 3; ++j)
+				meshes[back_gun2].vertData[i].position[j] = tmp.a[j][0];
+		}
+		meshes[back_gun2].final();
+		meshes[back_gun2].VAOId = 0;
+		meshes[back_gun2].VBOId = 0;
+		meshes[back_gun2].EBOId = 0;
+		meshes[back_gun2].setupMesh();
 	}
 private:
 	/*
@@ -64,6 +296,22 @@ private:
 		{
 			return false;
 		}
+		std::cout << node->mName.data << std::endl;
+		int flag = 0;
+		if (node->mName == aiString("g Propeller_meshShape_0419"))
+			flag = 1;
+		if (node->mName == aiString("g Propeller_meshShape_0423"))
+			flag = 2;
+		if (node->mName == aiString("g gunShape_0001"))
+			flag = 3;
+		if (node->mName == aiString("g gunShape_0109"))
+			flag = 4;
+		if (node->mName == aiString("g gunShape_0389"))
+			flag = 5;
+		if (node->mName == aiString("g gunShape_0391"))
+			flag = 6;
+		if (node->mName == aiString("g MidFrontShape"))
+			flag = 7;
 		// 先处理自身结点
 		for (size_t i = 0; i < node->mNumMeshes; ++i)
 		{
@@ -75,6 +323,20 @@ private:
 				if (this->processMesh(meshPtr, sceneObjPtr, meshObj))
 				{
 					this->meshes.push_back(meshObj);
+					if (flag == 1)
+						propeller1 = this->meshes.size() - 1;
+					if (flag == 2)
+						propeller2 = this->meshes.size() - 1;
+					if (flag == 3)
+						front_gun1 = this->meshes.size() - 1;
+					if (flag == 4)
+						front_gun2 = this->meshes.size() - 1;
+					if (flag == 5)
+						back_gun1 = this->meshes.size() - 1;
+					if (flag == 6)
+						back_gun2 = this->meshes.size() - 1;
+					if (flag == 7)
+						chimney = this->meshes.size() - 1;
 				}
 			}
 		}
@@ -207,6 +469,15 @@ private:
 	std::string modelFileDir; // 保存模型文件的文件夹路径
 	typedef std::map<std::string, Texture> LoadedTextMapType; // key = texture file path
 	LoadedTextMapType loadedTextureMap; // 保存已经加载的纹理
+public:
+	int propeller1, propeller2;
+	double x1, y1, z1, x2, y2, z2;
+	int front_gun1, front_gun2;
+	double x3, y3, z3, x4, y4, z4;
+	int back_gun1, back_gun2;
+	double x5, y5, z5, x6, y6, z6;
+	int chimney;
+	double x7, y7, z7;
 };
 
 #endif

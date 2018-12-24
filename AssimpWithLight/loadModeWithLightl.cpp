@@ -44,6 +44,20 @@ GLfloat lastFrame = 0.0f; // 上一帧时间
 Camera camera(glm::vec3(0.0f, 0.0f, 3.0f));
 glm::vec3 lampPos(1.2f, 1.2f, 1.2f);
 
+void particles_animation(GLfloat delta, const Model &obj, particle_system p[])
+{
+	//smoke1 animation
+	particle_system *smoke1 = &p[0];
+	smoke1->animation(delta);
+	for (int i = 0; i < delta * 1000; ++i)
+	{
+		particle tmp(1.0, 1.0, 1.0, obj.x7, obj.y7, obj.z7,
+			(rand() - RAND_MAX / 2.0) / (RAND_MAX /2.0) * 0.05, 0.3 + (rand() - RAND_MAX / 2.0) / (RAND_MAX / 2.0) * 0.05, (rand() - RAND_MAX / 2.0) / (RAND_MAX / 2.0) * 0.05,
+			0, 0, 0, 0.5, 0.5, 0.5);
+		smoke1->particles.push_back(tmp);
+	}
+}
+
 int main(int argc, char** argv)
 {
 	
@@ -105,11 +119,13 @@ int main(int argc, char** argv)
 		std::system("pause");
 		return -1;
 	}
+	particle_system particle_systems[20];
 	// Section2 准备着色器程序
 	Shader shader("model.vertex", "model.frag");
+	Shader particle_shader("particle.vertex", "particle.frag");
 
 	glEnable(GL_DEPTH_TEST);
-	glEnable(GL_CULL_FACE);
+	//glEnable(GL_CULL_FACE);
 	// 开始游戏主循环
 	while (!glfwWindowShouldClose(window))
 	{
@@ -118,9 +134,11 @@ int main(int argc, char** argv)
 		lastFrame = currentFrame;
 		glfwPollEvents(); // 处理例如鼠标 键盘等事件
 		do_movement(); // 根据用户操作情况 更新相机属性
+		objModel.animation(deltaTime);
+		particles_animation(deltaTime, objModel, particle_systems);
 
 		// 清除颜色缓冲区 重置为指定颜色
-		glClearColor(0.18f, 0.04f, 0.14f, 1.0f);
+		glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 		shader.use();
@@ -132,17 +150,14 @@ int main(int argc, char** argv)
 		GLint attConstant = glGetUniformLocation(shader.programId, "light.constant");
 		GLint attLinear = glGetUniformLocation(shader.programId, "light.linear");
 		GLint attQuadratic = glGetUniformLocation(shader.programId, "light.quadratic");
-		glUniform3f(lightAmbientLoc, 0.5f, 0.5f, 0.5f);
-		glUniform3f(lightDiffuseLoc, 0.7f, 0.7f, 0.7f);
+		glUniform3f(lightAmbientLoc, 1.0f, 1.0f, 1.0f);
+		glUniform3f(lightDiffuseLoc, 1.0f, 1.0f, 1.0f);
 		glUniform3f(lightSpecularLoc, 1.0f, 1.0f, 1.0f);
 		glUniform3f(lightPosLoc, lampPos.x, lampPos.y, lampPos.z);
 		// 设置衰减系数
-		/*glUniform1f(attConstant, 1.0f);
-		glUniform1f(attLinear, 0.09f);
-		glUniform1f(attQuadratic, 0.032f);*/
 		glUniform1f(attConstant, 1.0f);
-		glUniform1f(attLinear, 0.0f);
-		glUniform1f(attQuadratic, 0.0f);
+		glUniform1f(attLinear, 0.09f);
+		glUniform1f(attQuadratic, 0.032f);
 		// 设置观察者位置
 		GLint viewPosLoc = glGetUniformLocation(shader.programId, "viewPos");
 		glUniform3f(viewPosLoc, camera.position.x, camera.position.y, camera.position.z);
@@ -160,6 +175,47 @@ int main(int argc, char** argv)
 			1, GL_FALSE, glm::value_ptr(model));
 		// 这里填写场景绘制代码
 		objModel.draw(shader); // 绘制物体
+		/*for (int i = 0; i < 1; ++i)
+			particle_systems[i].draw(shader);*/
+
+		glBindVertexArray(0);
+		glUseProgram(0);
+
+		particle_shader.use();
+		// 设置光源属性 点光源
+		GLint lightAmbientLoc1 = glGetUniformLocation(particle_shader.programId, "light.ambient");
+		GLint lightDiffuseLoc1 = glGetUniformLocation(particle_shader.programId, "light.diffuse");
+		GLint lightSpecularLoc1 = glGetUniformLocation(particle_shader.programId, "light.specular");
+		GLint lightPosLoc1 = glGetUniformLocation(particle_shader.programId, "light.position");
+		GLint attConstant1 = glGetUniformLocation(particle_shader.programId, "light.constant");
+		GLint attLinear1 = glGetUniformLocation(particle_shader.programId, "light.linear");
+		GLint attQuadratic1 = glGetUniformLocation(particle_shader.programId, "light.quadratic");
+		glUniform3f(lightAmbientLoc1, 1.0f, 1.0f, 1.0f);
+		glUniform3f(lightDiffuseLoc1, 1.0f, 1.0f, 1.0f);
+		glUniform3f(lightSpecularLoc1, 1.0f, 1.0f, 1.0f);
+		glUniform3f(lightPosLoc1, lampPos.x, lampPos.y, lampPos.z);
+		// 设置衰减系数
+		glUniform1f(attConstant1, 1.0f);
+		glUniform1f(attLinear1, 0.09f);
+		glUniform1f(attQuadratic1, 0.032f);
+		// 设置观察者位置
+		GLint viewPosLoc1 = glGetUniformLocation(particle_shader.programId, "viewPos");
+		glUniform3f(viewPosLoc1, camera.position.x, camera.position.y, camera.position.z);
+		glm::mat4 projection1 = glm::perspective(camera.mouse_zoom,
+			(GLfloat)(WINDOW_WIDTH) / WINDOW_HEIGHT, 1.0f, 100.0f); // 投影矩阵
+		glm::mat4 view1 = camera.getViewMatrix(); // 视变换矩阵
+		glUniformMatrix4fv(glGetUniformLocation(particle_shader.programId, "projection"),
+			1, GL_FALSE, glm::value_ptr(projection1));
+		glUniformMatrix4fv(glGetUniformLocation(particle_shader.programId, "view"),
+			1, GL_FALSE, glm::value_ptr(view1));
+		glm::mat4 model1;
+		model1 = glm::scale(model1, glm::vec3(1.5f, 1.5f, 1.5f)); // 适当缩小模型
+		model1 = glm::translate(model1, glm::vec3(0.0f, -0.5f, 0.0f)); // 适当下调位置
+		glUniformMatrix4fv(glGetUniformLocation(particle_shader.programId, "model"),
+			1, GL_FALSE, glm::value_ptr(model1));
+		// 这里填写场景绘制代码
+		for (int i = 0; i < 1; ++i)
+			particle_systems[i].draw(particle_shader); // 绘制物体
 
 		glBindVertexArray(0);
 		glUseProgram(0);
