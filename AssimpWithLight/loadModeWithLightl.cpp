@@ -220,19 +220,23 @@ int main(int argc, char** argv)
 
 	srand(1);
 	int rowSize = 100, columnSize = 100;    // 横纵总网格点数
+	int refreshCenterX = 0, refreshCenterZ = 0;
 	int refreshRowSize = 10, refreshColumnSize = 10;    // 动态刷新部分横纵网格点数
 	int step = 1;    // 网格边长
 	GLfloat refreshTime = 0.08f;  // 刷新时间
 	Fluid f(rowSize, columnSize, step, refreshTime, 1, 0.2, 0);
-	f.setRefreshRange((rowSize - refreshRowSize)/2, (rowSize + refreshRowSize) / 2,
-		(columnSize - refreshColumnSize) / 2, (columnSize + refreshColumnSize) / 2);
+	f.setRefreshRange(
+		(rowSize - refreshRowSize) / 2 + refreshCenterX / step,
+		(rowSize + refreshRowSize) / 2 + refreshCenterX / step,
+		(columnSize - refreshColumnSize) / 2 + refreshCenterZ / step,
+		(columnSize + refreshColumnSize) / 2 + refreshCenterZ / step);
 	glm::mat4 modelFluid;
 	float transX = -rowSize * step / 2;
 	float transY = -0.8f;
 	float transZ = -columnSize * step / 2;
 	modelFluid = glm::translate(modelFluid, glm::vec3(transX, transY, transZ)); // 调整位置
 	float scaleX = 1.0f;
-	float scaleY = 0.05f;
+	float scaleY = 0.07f;
 	float scaleZ = 1.0f;
 	modelFluid = glm::scale(modelFluid, glm::vec3(scaleX, scaleY, scaleZ)); // 调整比例
 
@@ -346,6 +350,14 @@ int main(int argc, char** argv)
 		glUniformMatrix4fv(glGetUniformLocation(fluidShader.programId, "model"),
 			1, GL_FALSE, glm::value_ptr(modelFluid));
 		// 这里填写场景绘制代码
+		refreshCenterX = (int)(objModel.movement[3][2]);
+		refreshCenterZ = (int)(objModel.movement[3][0]);
+		f.setRefreshRange(
+			(rowSize - refreshRowSize) / 2 + refreshCenterX / step,
+			(rowSize + refreshRowSize) / 2 + refreshCenterX / step,
+			(columnSize - refreshColumnSize) / 2 + refreshCenterZ / step,
+			(columnSize + refreshColumnSize) / 2 + refreshCenterZ / step);
+
 		f.animation(deltaTime);  // 水面刷新
 		glDisable(GL_CULL_FACE);
 		f.draw(fluidShader);
