@@ -48,25 +48,61 @@ public:
 			std::cerr << "Error:Model::loadModel, process node failed."<< std::endl;
 			return false;
 		}
-		//propeller1 axis
+		//propeller1 axis and box
 		double min = 1e10;
+		box1x0 = 1e10; box1x1 = -1e10;
+		box1y0 = 1e10; box1y1 = -1e10;
+		box1z0 = 1e10; box1z1 = -1e10;
 		for (int i = 0; i < meshes[propeller1].vertData.size(); ++i)
+		{
 			if (meshes[propeller1].vertData[i].position.z < min)
 			{
 				min = meshes[propeller1].vertData[i].position.z;
 				x1 = meshes[propeller1].vertData[i].position.x;
 				y1 = meshes[propeller1].vertData[i].position.y;
 			}
-		//propeller2 axis
+			if (meshes[propeller1].vertData[i].position.x < box1x0)
+				box1x0 = meshes[propeller1].vertData[i].position.x;
+			if (meshes[propeller1].vertData[i].position.x > box1x1)
+				box1x1 = meshes[propeller1].vertData[i].position.x;
+			if (meshes[propeller1].vertData[i].position.z < box1z0)
+				box1z0 = meshes[propeller1].vertData[i].position.z;
+			if (meshes[propeller1].vertData[i].position.z > box1z1)
+				box1z1 = meshes[propeller1].vertData[i].position.z;
+			if (meshes[propeller1].vertData[i].position.y < box1y0)
+				box1y0 = meshes[propeller1].vertData[i].position.y;
+			if (meshes[propeller1].vertData[i].position.y > box1y1)
+				box1y1 = meshes[propeller1].vertData[i].position.y;
+		}
+		//propeller2 axis and box
 		min = 1e10;
+		box2x0 = 1e10; box2x1 = -1e10;
+		box2y0 = 1e10; box2y1 = -1e10;
+		box2z0 = 1e10; box2z1 = -1e10;
 		for (int i = 0; i < meshes[propeller2].vertData.size(); ++i)
+		{
 			if (meshes[propeller2].vertData[i].position.z < min)
 			{
 				min = meshes[propeller2].vertData[i].position.z;
 				x2 = meshes[propeller2].vertData[i].position.x;
 				y2 = meshes[propeller2].vertData[i].position.y;
 			}
+			if (meshes[propeller2].vertData[i].position.x < box2x0)
+				box2x0 = meshes[propeller2].vertData[i].position.x;
+			if (meshes[propeller2].vertData[i].position.x > box2x1)
+				box2x1 = meshes[propeller2].vertData[i].position.x;
+			if (meshes[propeller2].vertData[i].position.z < box2z0)
+				box2z0 = meshes[propeller2].vertData[i].position.z;
+			if (meshes[propeller2].vertData[i].position.z > box2z1)
+				box2z1 = meshes[propeller2].vertData[i].position.z;
+			if (meshes[propeller2].vertData[i].position.y < box2y0)
+				box2y0 = meshes[propeller2].vertData[i].position.y;
+			if (meshes[propeller2].vertData[i].position.y > box2y1)
+				box2y1 = meshes[propeller2].vertData[i].position.y;
+		}
 		//front gun 1 axis
+		front_min_angle = -acos(-1) * 0.5; front_max_angle = acos(-1) * 0.5;
+		front_gun_dir = 0; front_to = 1.0;
 		double max = -1e10, maxz = -1e10, minz = 1e10; min = 1e10;
 		for (int i = 0; i < meshes[front_gun1].vertData.size(); ++i)
 		{
@@ -97,6 +133,8 @@ public:
 		x4 = (max - min) * 0.5 + min;
 		z4 = (maxz - minz) / 7.0 * 2.0 + minz;
 		//back gun 1 axis
+		back_min_angle = -acos(-1) * 0.5; back_max_angle = acos(-1) * 0.5;
+		back_gun_dir = 0; back_to = 1.0;
 		max = -1e10; maxz = -1e10; minz = 1e10; min = 1e10;
 		for (int i = 0; i < meshes[back_gun1].vertData.size(); ++i)
 		{
@@ -147,6 +185,67 @@ public:
 		x7 = (max - min) * 0.5 + min;
 		z7 = (maxz - minz) * 0.25 + minz;
 		y7 = (maxy - miny) * 4.0 / 7.0 + miny;
+		//chimney2 position
+		max = -1e10; maxz = -1e10; minz = 1e10; min = 1e10; maxy = -1e10; miny = 1e10;
+		for (int i = 0; i < meshes[chimney2].vertData.size(); ++i)
+		{
+			if (meshes[chimney2].vertData[i].position.x < min)
+				min = meshes[chimney2].vertData[i].position.x;
+			if (meshes[chimney2].vertData[i].position.x > max)
+				max = meshes[chimney2].vertData[i].position.x;
+			if (meshes[chimney2].vertData[i].position.z < minz)
+				minz = meshes[chimney2].vertData[i].position.z;
+			if (meshes[chimney2].vertData[i].position.z > maxz)
+				maxz = meshes[chimney2].vertData[i].position.z;
+			if (meshes[chimney2].vertData[i].position.y < miny)
+				miny = meshes[chimney2].vertData[i].position.y;
+			if (meshes[chimney2].vertData[i].position.y > maxy)
+				maxy = meshes[chimney2].vertData[i].position.y;
+		}
+		x8 = (max - min) * 0.5 + min;
+		z8 = (maxz - minz) * 16.0 / 24.0 + minz;
+		y8 = (maxy - miny) * 29.0 / 47.0 + miny;
+		//position of front end of boat
+		max = -1e10; maxz = -1e10; minz = 1e10; min = 1e10; maxy = -1e10; miny = 1e10;
+		for (int i = 0; i < meshes[front].vertData.size(); ++i)
+		{
+			if (meshes[front].vertData[i].position.x < min)
+				min = meshes[front].vertData[i].position.x;
+			if (meshes[front].vertData[i].position.x > max)
+				max = meshes[front].vertData[i].position.x;
+			if (meshes[front].vertData[i].position.z < minz)
+				minz = meshes[front].vertData[i].position.z;
+			if (meshes[front].vertData[i].position.z > maxz)
+				maxz = meshes[front].vertData[i].position.z;
+			if (meshes[front].vertData[i].position.y < miny)
+				miny = meshes[front].vertData[i].position.y;
+			if (meshes[front].vertData[i].position.y > maxy)
+				maxy = meshes[front].vertData[i].position.y;
+		}
+		x9 = (max - min) * 0.5 + min;
+		z9 = -(maxz - minz) * 0.05 + maxz;
+		y9 = (maxy - miny) * 0.2 + miny;
+		//position of middle part of boat
+		max = -1e10; maxz = -1e10; minz = 1e10; min = 1e10; maxy = -1e10; miny = 1e10;
+		for (int i = 0; i < meshes[middle].vertData.size(); ++i)
+		{
+			if (meshes[middle].vertData[i].position.x < min)
+				min = meshes[middle].vertData[i].position.x;
+			if (meshes[middle].vertData[i].position.x > max)
+				max = meshes[middle].vertData[i].position.x;
+			if (meshes[middle].vertData[i].position.z < minz)
+				minz = meshes[middle].vertData[i].position.z;
+			if (meshes[middle].vertData[i].position.z > maxz)
+				maxz = meshes[middle].vertData[i].position.z;
+			if (meshes[middle].vertData[i].position.y < miny)
+				miny = meshes[middle].vertData[i].position.y;
+			if (meshes[middle].vertData[i].position.y > maxy)
+				maxy = meshes[middle].vertData[i].position.y;
+		}
+		x10_0 = min;
+		x10_1 = max;
+		z10 = maxz;
+		y10 = y9;
 		srand(time(0));
 		return true;
 	}
@@ -203,9 +302,12 @@ public:
 		meshes[propeller2].EBOId = 0;
 		meshes[propeller2].setupMesh();
 		//front gun 1 animation
-		thita = 0.05 * 2 * acos(-1) * delta;
+		thita = 0.05 * 2 * acos(-1) * delta * front_to;
 		co = cos(thita);
 		si = sin(thita);
+		front_gun_dir += thita;
+		if (front_gun_dir > front_max_angle || front_gun_dir < front_min_angle)
+			front_to *= -1;
 		move1 = matrix4(1, 0, 0, -x3, 0, 1, 0, 0, 0, 0, 1, -z3, 0, 0, 0, 1);
 		move2 = matrix4(1, 0, 0, x3, 0, 1, 0, 0, 0, 0, 1, z3, 0, 0, 0, 1);
 		rotate = matrix4(co, 0, si, 0, 0, 1, 0, 0, -si, 0, co, 0, 0, 0, 0, 1);
@@ -246,6 +348,12 @@ public:
 		meshes[front_gun2].EBOId = 0;
 		meshes[front_gun2].setupMesh();
 		//back gun 1 animation
+		thita = 0.05 * 2 * acos(-1) * delta * back_to;
+		co = cos(thita);
+		si = sin(thita);
+		back_gun_dir += thita;
+		if (back_gun_dir > back_max_angle || back_gun_dir < back_min_angle)
+			back_to *= -1;
 		move1 = matrix4(1, 0, 0, -x5, 0, 1, 0, 0, 0, 0, 1, -z5, 0, 0, 0, 1);
 		move2 = matrix4(1, 0, 0, x5, 0, 1, 0, 0, 0, 0, 1, z5, 0, 0, 0, 1);
 		rotate = matrix4(co, 0, si, 0, 0, 1, 0, 0, -si, 0, co, 0, 0, 0, 0, 1);
@@ -312,6 +420,12 @@ private:
 			flag = 6;
 		if (node->mName == aiString("g MidFrontShape"))
 			flag = 7;
+		if (node->mName == aiString("g MidBack_DeckHouseShape"))
+			flag = 8;
+		if (node->mName == aiString("g BowShape"))
+			flag = 9;
+		if (node->mName == aiString("g MidBackShape"))
+			flag = 10;
 		// 先处理自身结点
 		for (size_t i = 0; i < node->mNumMeshes; ++i)
 		{
@@ -337,6 +451,12 @@ private:
 						back_gun2 = this->meshes.size() - 1;
 					if (flag == 7)
 						chimney = this->meshes.size() - 1;
+					if (flag == 8)
+						chimney2 = this->meshes.size() - 1;
+					if (flag == 9)
+						front = this->meshes.size() - 1;
+					if (flag == 10)
+						middle = this->meshes.size() - 1;
 				}
 			}
 		}
@@ -472,12 +592,20 @@ private:
 public:
 	int propeller1, propeller2;
 	double x1, y1, z1, x2, y2, z2;
+	double box1x0, box1x1, box1y0, box1y1, box1z0, box1z1;
+	double box2x0, box2x1, box2y0, box2y1, box2z0, box2z1;
 	int front_gun1, front_gun2;
 	double x3, y3, z3, x4, y4, z4;
+	double front_gun_dir, front_min_angle, front_max_angle, front_to;
 	int back_gun1, back_gun2;
 	double x5, y5, z5, x6, y6, z6;
-	int chimney;
-	double x7, y7, z7;
+	double back_gun_dir, back_min_angle, back_max_angle, back_to;
+	int chimney, chimney2;
+	double x7, y7, z7, x8, y8, z8;
+	int front;
+	double x9, y9, z9;
+	int middle;
+	double x10_0, x10_1, y10, z10;
 };
 
 #endif

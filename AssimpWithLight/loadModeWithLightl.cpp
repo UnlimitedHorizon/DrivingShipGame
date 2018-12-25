@@ -51,12 +51,66 @@ void particles_animation(GLfloat delta, const Model &obj, particle_system p[])
 	//smoke1 animation
 	particle_system *smoke1 = &p[0];
 	smoke1->animation(delta);
-	for (int i = 0; i < delta * 1000; ++i)
+	for (int i = 0; i < fmin(delta * 1000, 1000); ++i)
 	{
 		particle tmp(1.0, 1.0, 1.0, obj.x7, obj.y7, obj.z7,
 			(rand() - RAND_MAX / 2.0) / (RAND_MAX /2.0) * 0.05, 0.3 + (rand() - RAND_MAX / 2.0) / (RAND_MAX / 2.0) * 0.05, (rand() - RAND_MAX / 2.0) / (RAND_MAX / 2.0) * 0.05,
 			0, 0, 0, 0.5, 0.5, 0.5);
 		smoke1->particles.push_back(tmp);
+	}
+	particle_system *smoke2 = &p[1];
+	smoke2->animation(delta);
+	for (int i = 0; i < fmin(delta * 1000, 1000); ++i)
+	{
+		particle tmp(1.0, 1.0, 1.0, obj.x8, obj.y8, obj.z8,
+			(rand() - RAND_MAX / 2.0) / (RAND_MAX / 2.0) * 0.05, 0.3 + (rand() - RAND_MAX / 2.0) / (RAND_MAX / 2.0) * 0.05, (rand() - RAND_MAX / 2.0) / (RAND_MAX / 2.0) * 0.05,
+			0, 0, 0, 0.5, 0.5, 0.5);
+		smoke2->particles.push_back(tmp);
+	}
+	particle_system *spray = &p[2];
+	spray->animation(delta);
+	for (int i = 0; i < fmin(delta * 1000, 1000); ++i)
+	{
+		float x = rand() / (RAND_MAX + 0.0) * (obj.box1x1 - obj.box1x0) + obj.box1x0;
+		float y = rand() / (RAND_MAX + 0.0) * (obj.box1y1 - obj.box1y0) + obj.box1y0;
+		float z = rand() / (RAND_MAX + 0.0) * (obj.box1z1 - obj.box1z0) + obj.box1z0;
+		particle tmp(1.0, 1.0, 1.0, x, y, z,
+			0.05, (rand() - RAND_MAX / 2.0) / (RAND_MAX / 2.0) * 0.1, -0.7 + (rand() - RAND_MAX / 2.0) / (RAND_MAX / 2.0) * 0.05,
+			0, -0.1, 0, 0.7, 0.7, 1.0);
+		spray->particles.push_back(tmp);
+	}
+	particle_system *spray2 = &p[3];
+	spray2->animation(delta);
+	for (int i = 0; i < fmin(delta * 1000, 1000); ++i)
+	{
+		float x = rand() / (RAND_MAX + 0.0) * (obj.box2x1 - obj.box2x0) + obj.box2x0;
+		float y = rand() / (RAND_MAX + 0.0) * (obj.box2y1 - obj.box2y0) + obj.box2y0;
+		float z = rand() / (RAND_MAX + 0.0) * (obj.box2z1 - obj.box2z0) + obj.box2z0;
+		particle tmp(1.0, 1.0, 1.0, x, y, z,
+			0.05, (rand() - RAND_MAX / 2.0) / (RAND_MAX / 2.0) * 0.1, -0.7 + (rand() - RAND_MAX / 2.0) / (RAND_MAX / 2.0) * 0.05,
+			0, -0.1, 0, 0.7, 0.7, 1.0);
+		spray2->particles.push_back(tmp);
+	}
+	particle_system *spray3 = &p[4];
+	spray3->animation(delta);
+	for (int i = 0; i < fmin(delta * 1000, 1000); ++i)
+	{
+		particle tmp(1.0, 1.0, 1.0, obj.x9, obj.y9, obj.z9,
+			-0.15 + (rand() - RAND_MAX / 2.0) / (RAND_MAX / 2.0) * 0.05, 0.02 + (rand() - RAND_MAX / 2.0) / (RAND_MAX / 2.0) * 0.1, -0.6 + (rand() - RAND_MAX / 2.0) / (RAND_MAX / 2.0) * 0.05,
+			0, -0.1, 0, 0.7, 0.7, 1.0);
+		spray3->particles.push_back(tmp);
+		particle tmp1(1.0, 1.0, 1.0, obj.x9, obj.y9, obj.z9,
+			0.15 + (rand() - RAND_MAX / 2.0) / (RAND_MAX / 2.0) * 0.05, 0.02 + (rand() - RAND_MAX / 2.0) / (RAND_MAX / 2.0) * 0.1, -0.6 + (rand() - RAND_MAX / 2.0) / (RAND_MAX / 2.0) * 0.05,
+			0, -0.1, 0, 0.7, 0.7, 1.0);
+		spray3->particles.push_back(tmp1);
+		particle tmp2(1.0, 1.0, 1.0, obj.x10_0, obj.y10, obj.z10,
+			-0.15 + (rand() - RAND_MAX / 2.0) / (RAND_MAX / 2.0) * 0.05, 0.02 + (rand() - RAND_MAX / 2.0) / (RAND_MAX / 2.0) * 0.1, -0.6 + (rand() - RAND_MAX / 2.0) / (RAND_MAX / 2.0) * 0.05,
+			0, -0.1, 0, 0.7, 0.7, 1.0);
+		spray3->particles.push_back(tmp2);
+		particle tmp3(1.0, 1.0, 1.0, obj.x10_1, obj.y10, obj.z10,
+			0.15 + (rand() - RAND_MAX / 2.0) / (RAND_MAX / 2.0) * 0.05, 0.02 + (rand() - RAND_MAX / 2.0) / (RAND_MAX / 2.0) * 0.1, -0.6 + (rand() - RAND_MAX / 2.0) / (RAND_MAX / 2.0) * 0.05,
+			0, -0.1, 0, 0.7, 0.7, 1.0);
+		spray3->particles.push_back(tmp3);
 	}
 }
 
@@ -143,6 +197,7 @@ int main(int argc, char** argv)
 
 	glEnable(GL_DEPTH_TEST);
 	glEnable(GL_CULL_FACE);
+	lastFrame = (GLfloat)glfwGetTime();
 	while (!glfwWindowShouldClose(window))
 	{
 		GLfloat currentFrame = (GLfloat)glfwGetTime();
@@ -229,7 +284,7 @@ int main(int argc, char** argv)
 		glUniformMatrix4fv(glGetUniformLocation(particle_shader.programId, "model"),
 			1, GL_FALSE, glm::value_ptr(model1));
 		// 这里填写场景绘制代码
-		for (int i = 0; i < 1; ++i)
+		for (int i = 0; i < 5; ++i)
 			particle_systems[i].draw(particle_shader); // 绘制物体
 
 		glBindVertexArray(0);
