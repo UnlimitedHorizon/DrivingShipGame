@@ -79,7 +79,7 @@ void particles_animation(GLfloat delta, const Model &obj, particle_system p[])
 	}
 	particle_system *spray = &p[2];
 	spray->animation(delta);
-	for (int i = 0; i < fmin(delta * 1000, 1000); ++i)
+	if (obj.move_speed > 0) for (int i = 0; i < fmin(delta * 1000, 1000); ++i)
 	{
 		float x = rand() / (RAND_MAX + 0.0) * (obj.box1x1 - obj.box1x0) + obj.box1x0;
 		float y = rand() / (RAND_MAX + 0.0) * (obj.box1y1 - obj.box1y0) + obj.box1y0;
@@ -95,7 +95,7 @@ void particles_animation(GLfloat delta, const Model &obj, particle_system p[])
 	}
 	particle_system *spray2 = &p[3];
 	spray2->animation(delta);
-	for (int i = 0; i < fmin(delta * 1000, 1000); ++i)
+	if (obj.move_speed > 0) for (int i = 0; i < fmin(delta * 1000, 1000); ++i)
 	{
 		float x = rand() / (RAND_MAX + 0.0) * (obj.box2x1 - obj.box2x0) + obj.box2x0;
 		float y = rand() / (RAND_MAX + 0.0) * (obj.box2y1 - obj.box2y0) + obj.box2y0;
@@ -111,7 +111,7 @@ void particles_animation(GLfloat delta, const Model &obj, particle_system p[])
 	}
 	particle_system *spray3 = &p[4];
 	spray3->animation(delta);
-	for (int i = 0; i < fmin(delta * 1000, 1000); ++i)
+	if (obj.move_speed > 0) for (int i = 0; i < fmin(delta * 1000, 1000); ++i)
 	{
 		glm::vec4 pos(obj.x9, obj.y9, obj.z9, 1.0);
 		glm::vec4 v(-0.15 + (rand() - RAND_MAX / 2.0) / (RAND_MAX / 2.0) * 0.05, 0.02 + (rand() - RAND_MAX / 2.0) / (RAND_MAX / 2.0) * 0.1, -0.6 + (rand() - RAND_MAX / 2.0) / (RAND_MAX / 2.0) * 0.05, 1.0);
@@ -410,7 +410,6 @@ void mouse_scroll_callback(GLFWwindow* window, double xoffset, double yoffset)
 // 由相机辅助类处理键盘控制
 void do_movement()
 {
-	
 	/*if (keyPressedStatus[GLFW_KEY_W])
 		camera.handleKeyPress(FORWARD, deltaTime);
 	if (keyPressedStatus[GLFW_KEY_S])
@@ -419,4 +418,15 @@ void do_movement()
 		camera.handleKeyPress(LEFT, deltaTime);
 	if (keyPressedStatus[GLFW_KEY_D])
 		camera.handleKeyPress(RIGHT, deltaTime);*/
+	glm::vec4 pos(camera.position.x, camera.position.y, camera.position.z, 1.0);
+	glm::mat4 unit(
+		1.0, 0.0, 0.0, 0.0,
+		0.0, 1.0, 0.0, 0.0,
+		0.0, 0.0, 1.0, 0.0,
+		0.0, 0.0, 0.0, 1.0);
+	pos = glm::translate(unit, glm::vec3(the_model->dir[0], the_model->dir[1], the_model->dir[2])
+		* (the_model->speed_unit * the_model->move_speed)) * pos;
+	camera.position.x = pos.x;
+	camera.position.y = pos.y;
+	camera.position.z = pos.z;
 }
