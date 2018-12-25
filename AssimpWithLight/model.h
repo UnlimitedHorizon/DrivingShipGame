@@ -201,6 +201,47 @@ public:
 		x8 = (max - min) * 0.5 + min;
 		z8 = (maxz - minz) * 16.0 / 24.0 + minz;
 		y8 = (maxy - miny) * 29.0 / 47.0 + miny;
+		//position of front end of boat
+		max = -1e10; maxz = -1e10; minz = 1e10; min = 1e10; maxy = -1e10; miny = 1e10;
+		for (int i = 0; i < meshes[front].vertData.size(); ++i)
+		{
+			if (meshes[front].vertData[i].position.x < min)
+				min = meshes[front].vertData[i].position.x;
+			if (meshes[front].vertData[i].position.x > max)
+				max = meshes[front].vertData[i].position.x;
+			if (meshes[front].vertData[i].position.z < minz)
+				minz = meshes[front].vertData[i].position.z;
+			if (meshes[front].vertData[i].position.z > maxz)
+				maxz = meshes[front].vertData[i].position.z;
+			if (meshes[front].vertData[i].position.y < miny)
+				miny = meshes[front].vertData[i].position.y;
+			if (meshes[front].vertData[i].position.y > maxy)
+				maxy = meshes[front].vertData[i].position.y;
+		}
+		x9 = (max - min) * 0.5 + min;
+		z9 = -(maxz - minz) * 0.05 + maxz;
+		y9 = (maxy - miny) * 0.2 + miny;
+		//position of middle part of boat
+		max = -1e10; maxz = -1e10; minz = 1e10; min = 1e10; maxy = -1e10; miny = 1e10;
+		for (int i = 0; i < meshes[middle].vertData.size(); ++i)
+		{
+			if (meshes[middle].vertData[i].position.x < min)
+				min = meshes[middle].vertData[i].position.x;
+			if (meshes[middle].vertData[i].position.x > max)
+				max = meshes[middle].vertData[i].position.x;
+			if (meshes[middle].vertData[i].position.z < minz)
+				minz = meshes[middle].vertData[i].position.z;
+			if (meshes[middle].vertData[i].position.z > maxz)
+				maxz = meshes[middle].vertData[i].position.z;
+			if (meshes[middle].vertData[i].position.y < miny)
+				miny = meshes[middle].vertData[i].position.y;
+			if (meshes[middle].vertData[i].position.y > maxy)
+				maxy = meshes[middle].vertData[i].position.y;
+		}
+		x10_0 = min;
+		x10_1 = max;
+		z10 = maxz;
+		y10 = y9;
 		srand(time(0));
 		return true;
 	}
@@ -368,6 +409,10 @@ private:
 			flag = 7;
 		if (node->mName == aiString("g MidBack_DeckHouseShape"))
 			flag = 8;
+		if (node->mName == aiString("g BowShape"))
+			flag = 9;
+		if (node->mName == aiString("g MidBackShape"))
+			flag = 10;
 		// 先处理自身结点
 		for (size_t i = 0; i < node->mNumMeshes; ++i)
 		{
@@ -395,6 +440,10 @@ private:
 						chimney = this->meshes.size() - 1;
 					if (flag == 8)
 						chimney2 = this->meshes.size() - 1;
+					if (flag == 9)
+						front = this->meshes.size() - 1;
+					if (flag == 10)
+						middle = this->meshes.size() - 1;
 				}
 			}
 		}
@@ -538,6 +587,10 @@ public:
 	double x5, y5, z5, x6, y6, z6;
 	int chimney, chimney2;
 	double x7, y7, z7, x8, y8, z8;
+	int front;
+	double x9, y9, z9;
+	int middle;
+	double x10_0, x10_1, y10, z10;
 };
 
 #endif
