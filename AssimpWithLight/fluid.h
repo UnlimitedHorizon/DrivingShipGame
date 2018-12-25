@@ -15,7 +15,7 @@ struct VertexFluid {
 class Fluid {
 public:
 
-	// rowSize_: 横向网格点数, columnSize_: 纵向网格点数, step: 网格点间距
+	// rowSize_: x网格点数, columnSize_: z网格点数, step: 网格点间距
 	// refreshTime_: 刷新时间间隔
 	// t: 公式系数-时间, c: 公式系数-波速, mu: 公式系数-阻力系数
 	Fluid(int rowSize_, int columnSize_, float step, GLfloat refreshTime_, float t, float c, float mu):
@@ -86,6 +86,23 @@ public:
 		this->final();
 	}
 
+	// 设定水面刷新范围  范围参数为数组下标写法  闭区间
+	bool setRefreshRange(int startX, int endX, int startZ, int endZ) {
+		startX = startX < 1 ? 1 : startX;
+		endX = endX > rowSize - 1 ? rowSize - 1 : endX;
+		startZ = startZ < 1 ? 1 : startZ;
+		endZ = endZ > columnSize - 1 ? columnSize - 1 : endZ;
+		if (startX >= rowSize || endX < 0
+			|| startZ >= columnSize || endZ < 0) {
+			return false;
+		}
+		refreshRangeStartColumn = startX;
+		refreshRangeEndColumn = endX;
+		refreshRangeStartRow = startZ;
+		refreshRangeEndRow = endZ;
+		return true;
+	}
+
 	void animation(GLfloat deltaTime) {
 		accumulateTime += deltaTime;
 		if (accumulateTime > refreshTime) {
@@ -99,8 +116,8 @@ public:
 		currentRender = !currentRender;
 		std::vector<VertexFluid> &vd1 = currentRender ? vertData1 : vertData2;
 		std::vector<VertexFluid> &vd2 = currentRender ? vertData2 : vertData1;
-		for (int i = 1; i < columnSize - 1; i++) {
-			for (int j = 1; j < rowSize - 1; j++) {
+		for (int i = refreshRangeStartColumn; i <= refreshRangeEndColumn; i++) {
+			for (int j = refreshRangeStartRow; j <= refreshRangeEndRow; j++) {
 				int index = i * rowSize + j;
 				float temp = vertData1[index].position.y;
 				vd2[index].position.y =
@@ -110,6 +127,17 @@ public:
 						vd1[index + rowSize].position.y + vd1[index - rowSize].position.y);
 			}
 		}
+		//for (int i = 1; i < columnSize - 1; i++) {
+		//	for (int j = 1; j < rowSize - 1; j++) {
+		//		int index = i * rowSize + j;
+		//		float temp = vertData1[index].position.y;
+		//		vd2[index].position.y =
+		//			k1 * vd1[index].position.y +
+		//			k2 * vd2[index].position.y +
+		//			k3 * (vd1[index + 1].position.y + vd1[index - 1].position.y +
+		//				vd1[index + rowSize].position.y + vd1[index - rowSize].position.y);
+		//	}
+		//}
 		glBindVertexArray(this->VAOId);
 		glBindBuffer(GL_ARRAY_BUFFER, this->VBOId);
 		glBufferData(GL_ARRAY_BUFFER, sizeof(VertexFluid) * vd2.size(),
@@ -166,8 +194,12 @@ private:
 	}
 
 private:
-	int rowSize;    // 横向网格数
-	int columnSize;    // 纵向网格数
+	int rowSize;    // x网格数
+	int columnSize;    // z网格数
+	int refreshRangeStartColumn;
+	int refreshRangeEndColumn;
+	int refreshRangeStartRow;
+	int refreshRangeEndRow;
 
 	// 因迭代公式需要记录上一次点的位置 因此使用两组顶点数据交替赋值
 	bool currentRender;    // 记录当前使用的顶点缓冲
