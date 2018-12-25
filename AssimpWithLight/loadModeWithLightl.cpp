@@ -181,10 +181,13 @@ int main(int argc, char** argv)
 	Shader fluidShader("texture.vs", "texture.fs");
 
 	srand(1);
-	int rowSize = 10, columnSize = 10;    // 横纵网格数
+	int rowSize = 100, columnSize = 100;    // 横纵总网格点数
+	int refreshRowSize = 10, refreshColumnSize = 10;    // 动态刷新部分横纵网格点数
 	int step = 1;    // 网格边长
 	GLfloat refreshTime = 0.08f;  // 刷新时间
 	Fluid f(rowSize, columnSize, step, refreshTime, 1, 0.2, 0);
+	f.setRefreshRange((rowSize - refreshRowSize)/2, (rowSize + refreshRowSize) / 2,
+		(columnSize - refreshColumnSize) / 2, (columnSize + refreshColumnSize) / 2);
 	glm::mat4 modelFluid;
 	float transX = -rowSize * step / 2;
 	float transY = -0.8f;
