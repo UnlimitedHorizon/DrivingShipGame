@@ -197,6 +197,7 @@ int main(int argc, char** argv)
 
 	glEnable(GL_DEPTH_TEST);
 	glEnable(GL_CULL_FACE);
+	lastFrame = (GLfloat)glfwGetTime();
 	while (!glfwWindowShouldClose(window))
 	{
 		GLfloat currentFrame = (GLfloat)glfwGetTime();

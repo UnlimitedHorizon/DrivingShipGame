@@ -101,6 +101,8 @@ public:
 				box2y1 = meshes[propeller2].vertData[i].position.y;
 		}
 		//front gun 1 axis
+		front_min_angle = -acos(-1) * 0.5; front_max_angle = acos(-1) * 0.5;
+		front_gun_dir = 0; front_to = 1.0;
 		double max = -1e10, maxz = -1e10, minz = 1e10; min = 1e10;
 		for (int i = 0; i < meshes[front_gun1].vertData.size(); ++i)
 		{
@@ -131,6 +133,8 @@ public:
 		x4 = (max - min) * 0.5 + min;
 		z4 = (maxz - minz) / 7.0 * 2.0 + minz;
 		//back gun 1 axis
+		back_min_angle = -acos(-1) * 0.5; back_max_angle = acos(-1) * 0.5;
+		back_gun_dir = 0; back_to = 1.0;
 		max = -1e10; maxz = -1e10; minz = 1e10; min = 1e10;
 		for (int i = 0; i < meshes[back_gun1].vertData.size(); ++i)
 		{
@@ -298,9 +302,12 @@ public:
 		meshes[propeller2].EBOId = 0;
 		meshes[propeller2].setupMesh();
 		//front gun 1 animation
-		thita = 0.05 * 2 * acos(-1) * delta;
+		thita = 0.05 * 2 * acos(-1) * delta * front_to;
 		co = cos(thita);
 		si = sin(thita);
+		front_gun_dir += thita;
+		if (front_gun_dir > front_max_angle || front_gun_dir < front_min_angle)
+			front_to *= -1;
 		move1 = matrix4(1, 0, 0, -x3, 0, 1, 0, 0, 0, 0, 1, -z3, 0, 0, 0, 1);
 		move2 = matrix4(1, 0, 0, x3, 0, 1, 0, 0, 0, 0, 1, z3, 0, 0, 0, 1);
 		rotate = matrix4(co, 0, si, 0, 0, 1, 0, 0, -si, 0, co, 0, 0, 0, 0, 1);
@@ -341,6 +348,12 @@ public:
 		meshes[front_gun2].EBOId = 0;
 		meshes[front_gun2].setupMesh();
 		//back gun 1 animation
+		thita = 0.05 * 2 * acos(-1) * delta * back_to;
+		co = cos(thita);
+		si = sin(thita);
+		back_gun_dir += thita;
+		if (back_gun_dir > back_max_angle || back_gun_dir < back_min_angle)
+			back_to *= -1;
 		move1 = matrix4(1, 0, 0, -x5, 0, 1, 0, 0, 0, 0, 1, -z5, 0, 0, 0, 1);
 		move2 = matrix4(1, 0, 0, x5, 0, 1, 0, 0, 0, 0, 1, z5, 0, 0, 0, 1);
 		rotate = matrix4(co, 0, si, 0, 0, 1, 0, 0, -si, 0, co, 0, 0, 0, 0, 1);
@@ -583,8 +596,10 @@ public:
 	double box2x0, box2x1, box2y0, box2y1, box2z0, box2z1;
 	int front_gun1, front_gun2;
 	double x3, y3, z3, x4, y4, z4;
+	double front_gun_dir, front_min_angle, front_max_angle, front_to;
 	int back_gun1, back_gun2;
 	double x5, y5, z5, x6, y6, z6;
+	double back_gun_dir, back_min_angle, back_max_angle, back_to;
 	int chimney, chimney2;
 	double x7, y7, z7, x8, y8, z8;
 	int front;
