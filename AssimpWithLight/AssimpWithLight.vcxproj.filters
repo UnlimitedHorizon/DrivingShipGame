@@ -36,6 +36,9 @@
     <ClInclude Include="particles.h">
       <Filter>头文件</Filter>
     </ClInclude>
+    <ClInclude Include="fluid.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="loadModeWithLightl.cpp">

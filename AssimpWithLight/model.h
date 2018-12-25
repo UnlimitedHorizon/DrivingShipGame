@@ -246,6 +246,25 @@ public:
 		x10_1 = max;
 		z10 = maxz;
 		y10 = y9;
+		//disturbance
+		/*disturbance = glm::mat4(1.0, 0.0, 0.0, 0.0,
+			0.0, 1.0, 0.0, 0.0,
+			0.0, 0.0, 1.0, 0.0,
+			0.0, 0.0, 0.0, 1.0);
+		disturb_dir = 0.0;
+		disturb_min_angle = -acos(-1) / 30;
+		disturb_max_angle = acos(-1) / 30;
+		disturb_to = 1.0;*/
+		//movement
+		dir = glm::vec4(0, 0, 1, 1);
+		move_speed = rotation_speed = 0;
+		speed_unit = 0.005;
+		omega_unit = acos(-1) / 20.0;
+		movement = rotation = glm::mat4(
+			1.0, 0.0, 0.0, 0.0,
+			0.0, 1.0, 0.0, 0.0,
+			0.0, 0.0, 1.0, 0.0,
+			0.0, 0.0, 0.0, 1.0);
 		srand(time(0));
 		return true;
 	}
@@ -393,6 +412,22 @@ public:
 		meshes[back_gun2].VBOId = 0;
 		meshes[back_gun2].EBOId = 0;
 		meshes[back_gun2].setupMesh();
+		//disturbance
+		/*thita = (acos(-1) / 150.0) * delta * disturb_to;
+		disturb_dir += thita;
+		if (disturb_dir < disturb_min_angle || disturb_dir > disturb_max_angle)
+			disturb_to *= -1.0;
+		disturbance = glm::rotate(disturbance, thita, glm::vec3(0, 0, 1));*/
+		//movement
+		glm::mat4 unit(
+			1.0, 0.0, 0.0, 0.0,
+			0.0, 1.0, 0.0, 0.0,
+			0.0, 0.0, 1.0, 0.0,
+			0.0, 0.0, 0.0, 1.0
+		);
+		dir = glm::rotate(unit, omega_unit * rotation_speed * delta, glm::vec3(0, 1, 0)) * dir;
+		rotation = glm::rotate(rotation, omega_unit * rotation_speed * delta, glm::vec3(0, 1, 0));
+		movement = glm::translate(movement, glm::vec3(dir[0], dir[1], dir[2]) * (speed_unit * move_speed));
 	}
 private:
 	/*
@@ -606,6 +641,12 @@ public:
 	double x9, y9, z9;
 	int middle;
 	double x10_0, x10_1, y10, z10;
+	GLfloat omega_unit, speed_unit;
+	glm::vec4 dir;
+	int move_speed, rotation_speed;
+	glm::mat4 movement, rotation;
+	/*glm::mat4 disturbance;
+	double disturb_min_angle, disturb_max_angle, disturb_to, disturb_dir;*/
 };
 
 #endif
