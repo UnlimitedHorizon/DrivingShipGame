@@ -48,24 +48,58 @@ public:
 			std::cerr << "Error:Model::loadModel, process node failed."<< std::endl;
 			return false;
 		}
-		//propeller1 axis
+		//propeller1 axis and box
 		double min = 1e10;
+		box1x0 = 1e10; box1x1 = -1e10;
+		box1y0 = 1e10; box1y1 = -1e10;
+		box1z0 = 1e10; box1z1 = -1e10;
 		for (int i = 0; i < meshes[propeller1].vertData.size(); ++i)
+		{
 			if (meshes[propeller1].vertData[i].position.z < min)
 			{
 				min = meshes[propeller1].vertData[i].position.z;
 				x1 = meshes[propeller1].vertData[i].position.x;
 				y1 = meshes[propeller1].vertData[i].position.y;
 			}
-		//propeller2 axis
+			if (meshes[propeller1].vertData[i].position.x < box1x0)
+				box1x0 = meshes[propeller1].vertData[i].position.x;
+			if (meshes[propeller1].vertData[i].position.x > box1x1)
+				box1x1 = meshes[propeller1].vertData[i].position.x;
+			if (meshes[propeller1].vertData[i].position.z < box1z0)
+				box1z0 = meshes[propeller1].vertData[i].position.z;
+			if (meshes[propeller1].vertData[i].position.z > box1z1)
+				box1z1 = meshes[propeller1].vertData[i].position.z;
+			if (meshes[propeller1].vertData[i].position.y < box1y0)
+				box1y0 = meshes[propeller1].vertData[i].position.y;
+			if (meshes[propeller1].vertData[i].position.y > box1y1)
+				box1y1 = meshes[propeller1].vertData[i].position.y;
+		}
+		//propeller2 axis and box
 		min = 1e10;
+		box2x0 = 1e10; box2x1 = -1e10;
+		box2y0 = 1e10; box2y1 = -1e10;
+		box2z0 = 1e10; box2z1 = -1e10;
 		for (int i = 0; i < meshes[propeller2].vertData.size(); ++i)
+		{
 			if (meshes[propeller2].vertData[i].position.z < min)
 			{
 				min = meshes[propeller2].vertData[i].position.z;
 				x2 = meshes[propeller2].vertData[i].position.x;
 				y2 = meshes[propeller2].vertData[i].position.y;
 			}
+			if (meshes[propeller2].vertData[i].position.x < box2x0)
+				box2x0 = meshes[propeller2].vertData[i].position.x;
+			if (meshes[propeller2].vertData[i].position.x > box2x1)
+				box2x1 = meshes[propeller2].vertData[i].position.x;
+			if (meshes[propeller2].vertData[i].position.z < box2z0)
+				box2z0 = meshes[propeller2].vertData[i].position.z;
+			if (meshes[propeller2].vertData[i].position.z > box2z1)
+				box2z1 = meshes[propeller2].vertData[i].position.z;
+			if (meshes[propeller2].vertData[i].position.y < box2y0)
+				box2y0 = meshes[propeller2].vertData[i].position.y;
+			if (meshes[propeller2].vertData[i].position.y > box2y1)
+				box2y1 = meshes[propeller2].vertData[i].position.y;
+		}
 		//front gun 1 axis
 		double max = -1e10, maxz = -1e10, minz = 1e10; min = 1e10;
 		for (int i = 0; i < meshes[front_gun1].vertData.size(); ++i)
@@ -147,6 +181,26 @@ public:
 		x7 = (max - min) * 0.5 + min;
 		z7 = (maxz - minz) * 0.25 + minz;
 		y7 = (maxy - miny) * 4.0 / 7.0 + miny;
+		//chimney2 position
+		max = -1e10; maxz = -1e10; minz = 1e10; min = 1e10; maxy = -1e10; miny = 1e10;
+		for (int i = 0; i < meshes[chimney2].vertData.size(); ++i)
+		{
+			if (meshes[chimney2].vertData[i].position.x < min)
+				min = meshes[chimney2].vertData[i].position.x;
+			if (meshes[chimney2].vertData[i].position.x > max)
+				max = meshes[chimney2].vertData[i].position.x;
+			if (meshes[chimney2].vertData[i].position.z < minz)
+				minz = meshes[chimney2].vertData[i].position.z;
+			if (meshes[chimney2].vertData[i].position.z > maxz)
+				maxz = meshes[chimney2].vertData[i].position.z;
+			if (meshes[chimney2].vertData[i].position.y < miny)
+				miny = meshes[chimney2].vertData[i].position.y;
+			if (meshes[chimney2].vertData[i].position.y > maxy)
+				maxy = meshes[chimney2].vertData[i].position.y;
+		}
+		x8 = (max - min) * 0.5 + min;
+		z8 = (maxz - minz) * 16.0 / 24.0 + minz;
+		y8 = (maxy - miny) * 29.0 / 47.0 + miny;
 		srand(time(0));
 		return true;
 	}
@@ -312,6 +366,8 @@ private:
 			flag = 6;
 		if (node->mName == aiString("g MidFrontShape"))
 			flag = 7;
+		if (node->mName == aiString("g MidBack_DeckHouseShape"))
+			flag = 8;
 		// 先处理自身结点
 		for (size_t i = 0; i < node->mNumMeshes; ++i)
 		{
@@ -337,6 +393,8 @@ private:
 						back_gun2 = this->meshes.size() - 1;
 					if (flag == 7)
 						chimney = this->meshes.size() - 1;
+					if (flag == 8)
+						chimney2 = this->meshes.size() - 1;
 				}
 			}
 		}
@@ -472,12 +530,14 @@ private:
 public:
 	int propeller1, propeller2;
 	double x1, y1, z1, x2, y2, z2;
+	double box1x0, box1x1, box1y0, box1y1, box1z0, box1z1;
+	double box2x0, box2x1, box2y0, box2y1, box2z0, box2z1;
 	int front_gun1, front_gun2;
 	double x3, y3, z3, x4, y4, z4;
 	int back_gun1, back_gun2;
 	double x5, y5, z5, x6, y6, z6;
-	int chimney;
-	double x7, y7, z7;
+	int chimney, chimney2;
+	double x7, y7, z7, x8, y8, z8;
 };
 
 #endif

@@ -8,7 +8,7 @@
 #include <list>
 #include "shader.h"
 
-const float size = 0.005;
+const float size = 0.002;
 const float dx[8] = { -1, -1, -1, -1,  1,  1,  1,  1 };
 const float dy[8] = { -1, -1,  1,  1, -1, -1,  1,  1 };
 const float dz[8] = { -1,  1, -1,  1, -1,  1, -1,  1 };

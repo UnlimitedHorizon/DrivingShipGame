@@ -58,6 +58,39 @@ void particles_animation(GLfloat delta, const Model &obj, particle_system p[])
 			0, 0, 0, 0.5, 0.5, 0.5);
 		smoke1->particles.push_back(tmp);
 	}
+	particle_system *smoke2 = &p[1];
+	smoke2->animation(delta);
+	for (int i = 0; i < delta * 1000; ++i)
+	{
+		particle tmp(1.0, 1.0, 1.0, obj.x8, obj.y8, obj.z8,
+			(rand() - RAND_MAX / 2.0) / (RAND_MAX / 2.0) * 0.05, 0.3 + (rand() - RAND_MAX / 2.0) / (RAND_MAX / 2.0) * 0.05, (rand() - RAND_MAX / 2.0) / (RAND_MAX / 2.0) * 0.05,
+			0, 0, 0, 0.5, 0.5, 0.5);
+		smoke2->particles.push_back(tmp);
+	}
+	particle_system *spray = &p[2];
+	spray->animation(delta);
+	for (int i = 0; i < delta * 1000; ++i)
+	{
+		float x = rand() / (RAND_MAX + 0.0) * (obj.box1x1 - obj.box1x0) + obj.box1x0;
+		float y = rand() / (RAND_MAX + 0.0) * (obj.box1y1 - obj.box1y0) + obj.box1y0;
+		float z = rand() / (RAND_MAX + 0.0) * (obj.box1z1 - obj.box1z0) + obj.box1z0;
+		particle tmp(1.0, 1.0, 1.0, x, y, z,
+			0.05, (rand() - RAND_MAX / 2.0) / (RAND_MAX / 2.0) * 0.1, -0.7 + (rand() - RAND_MAX / 2.0) / (RAND_MAX / 2.0) * 0.05,
+			0, -0.1, 0, 0.7, 0.7, 1.0);
+		spray->particles.push_back(tmp);
+	}
+	particle_system *spray2 = &p[3];
+	spray2->animation(delta);
+	for (int i = 0; i < delta * 1000; ++i)
+	{
+		float x = rand() / (RAND_MAX + 0.0) * (obj.box2x1 - obj.box2x0) + obj.box2x0;
+		float y = rand() / (RAND_MAX + 0.0) * (obj.box2y1 - obj.box2y0) + obj.box2y0;
+		float z = rand() / (RAND_MAX + 0.0) * (obj.box2z1 - obj.box2z0) + obj.box2z0;
+		particle tmp(1.0, 1.0, 1.0, x, y, z,
+			0.05, (rand() - RAND_MAX / 2.0) / (RAND_MAX / 2.0) * 0.1, -0.7 + (rand() - RAND_MAX / 2.0) / (RAND_MAX / 2.0) * 0.05,
+			0, -0.1, 0, 0.7, 0.7, 1.0);
+		spray2->particles.push_back(tmp);
+	}
 }
 
 int main(int argc, char** argv)
@@ -229,7 +262,7 @@ int main(int argc, char** argv)
 		glUniformMatrix4fv(glGetUniformLocation(particle_shader.programId, "model"),
 			1, GL_FALSE, glm::value_ptr(model1));
 		// 这里填写场景绘制代码
-		for (int i = 0; i < 1; ++i)
+		for (int i = 0; i < 4; ++i)
 			particle_systems[i].draw(particle_shader); // 绘制物体
 
 		glBindVertexArray(0);
