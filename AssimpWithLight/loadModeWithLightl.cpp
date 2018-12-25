@@ -45,16 +45,22 @@ GLfloat deltaTime = 0.0f; // 当前帧和上一帧的时间差
 GLfloat lastFrame = 0.0f; // 上一帧时间
 Camera camera(glm::vec3(0.0f, 0.0f, 3.0f));
 glm::vec3 lampPos(1.2f, 1.2f, 1.2f);
+Model *the_model;
 
 void particles_animation(GLfloat delta, const Model &obj, particle_system p[])
 {
 	//smoke1 animation
+	glm::mat4 base = obj.movement * obj.rotation;
 	particle_system *smoke1 = &p[0];
 	smoke1->animation(delta);
 	for (int i = 0; i < fmin(delta * 1000, 1000); ++i)
 	{
-		particle tmp(1.0, 1.0, 1.0, obj.x7, obj.y7, obj.z7,
-			(rand() - RAND_MAX / 2.0) / (RAND_MAX /2.0) * 0.05, 0.3 + (rand() - RAND_MAX / 2.0) / (RAND_MAX / 2.0) * 0.05, (rand() - RAND_MAX / 2.0) / (RAND_MAX / 2.0) * 0.05,
+		glm::vec4 pos(obj.x7, obj.y7, obj.z7, 1.0);
+		glm::vec4 v((rand() - RAND_MAX / 2.0) / (RAND_MAX / 2.0) * 0.05, 0.3 + (rand() - RAND_MAX / 2.0) / (RAND_MAX / 2.0) * 0.05, (rand() - RAND_MAX / 2.0) / (RAND_MAX / 2.0) * 0.05, 1.0);
+		pos = base * pos;
+		v = obj.rotation * v;
+		particle tmp(1.0, 1.0, 1.0, pos.x, pos.y, pos.z,
+			v.x, v.y, v.z,
 			0, 0, 0, 0.5, 0.5, 0.5);
 		smoke1->particles.push_back(tmp);
 	}
@@ -62,53 +68,84 @@ void particles_animation(GLfloat delta, const Model &obj, particle_system p[])
 	smoke2->animation(delta);
 	for (int i = 0; i < fmin(delta * 1000, 1000); ++i)
 	{
-		particle tmp(1.0, 1.0, 1.0, obj.x8, obj.y8, obj.z8,
-			(rand() - RAND_MAX / 2.0) / (RAND_MAX / 2.0) * 0.05, 0.3 + (rand() - RAND_MAX / 2.0) / (RAND_MAX / 2.0) * 0.05, (rand() - RAND_MAX / 2.0) / (RAND_MAX / 2.0) * 0.05,
+		glm::vec4 pos(obj.x8, obj.y8, obj.z8, 1.0);
+		glm::vec4 v((rand() - RAND_MAX / 2.0) / (RAND_MAX / 2.0) * 0.05, 0.3 + (rand() - RAND_MAX / 2.0) / (RAND_MAX / 2.0) * 0.05, (rand() - RAND_MAX / 2.0) / (RAND_MAX / 2.0) * 0.05, 1.0);
+		pos = base * pos;
+		v = obj.rotation * v;
+		particle tmp(1.0, 1.0, 1.0, pos.x, pos.y, pos.z,
+			v.x, v.y, v.z,
 			0, 0, 0, 0.5, 0.5, 0.5);
 		smoke2->particles.push_back(tmp);
 	}
 	particle_system *spray = &p[2];
 	spray->animation(delta);
-	for (int i = 0; i < fmin(delta * 1000, 1000); ++i)
+	if (obj.move_speed > 0) for (int i = 0; i < fmin(delta * 1000, 1000); ++i)
 	{
 		float x = rand() / (RAND_MAX + 0.0) * (obj.box1x1 - obj.box1x0) + obj.box1x0;
 		float y = rand() / (RAND_MAX + 0.0) * (obj.box1y1 - obj.box1y0) + obj.box1y0;
 		float z = rand() / (RAND_MAX + 0.0) * (obj.box1z1 - obj.box1z0) + obj.box1z0;
-		particle tmp(1.0, 1.0, 1.0, x, y, z,
-			0.05, (rand() - RAND_MAX / 2.0) / (RAND_MAX / 2.0) * 0.1, -0.7 + (rand() - RAND_MAX / 2.0) / (RAND_MAX / 2.0) * 0.05,
+		glm::vec4 pos(x, y, z, 1.0);
+		glm::vec4 v(0.05, (rand() - RAND_MAX / 2.0) / (RAND_MAX / 2.0) * 0.1, -0.7 + (rand() - RAND_MAX / 2.0) / (RAND_MAX / 2.0) * 0.05, 1.0);
+		pos = base * pos;
+		v = obj.rotation * v;
+		particle tmp(1.0, 1.0, 1.0, pos.x, pos.y, pos.z,
+			v.x, v.y, v.z,
 			0, -0.1, 0, 0.7, 0.7, 1.0);
 		spray->particles.push_back(tmp);
 	}
 	particle_system *spray2 = &p[3];
 	spray2->animation(delta);
-	for (int i = 0; i < fmin(delta * 1000, 1000); ++i)
+	if (obj.move_speed > 0) for (int i = 0; i < fmin(delta * 1000, 1000); ++i)
 	{
 		float x = rand() / (RAND_MAX + 0.0) * (obj.box2x1 - obj.box2x0) + obj.box2x0;
 		float y = rand() / (RAND_MAX + 0.0) * (obj.box2y1 - obj.box2y0) + obj.box2y0;
 		float z = rand() / (RAND_MAX + 0.0) * (obj.box2z1 - obj.box2z0) + obj.box2z0;
-		particle tmp(1.0, 1.0, 1.0, x, y, z,
-			0.05, (rand() - RAND_MAX / 2.0) / (RAND_MAX / 2.0) * 0.1, -0.7 + (rand() - RAND_MAX / 2.0) / (RAND_MAX / 2.0) * 0.05,
+		glm::vec4 pos(x, y, z, 1.0);
+		glm::vec4 v(0.05, (rand() - RAND_MAX / 2.0) / (RAND_MAX / 2.0) * 0.1, -0.7 + (rand() - RAND_MAX / 2.0) / (RAND_MAX / 2.0) * 0.05, 1.0);
+		pos = base * pos;
+		v = obj.rotation * v;
+		particle tmp(1.0, 1.0, 1.0, pos.x, pos.y, pos.z,
+			v.x, v.y, v.z,
 			0, -0.1, 0, 0.7, 0.7, 1.0);
 		spray2->particles.push_back(tmp);
 	}
 	particle_system *spray3 = &p[4];
 	spray3->animation(delta);
-	for (int i = 0; i < fmin(delta * 1000, 1000); ++i)
+	if (obj.move_speed > 0) for (int i = 0; i < fmin(delta * 1000, 1000); ++i)
 	{
-		particle tmp(1.0, 1.0, 1.0, obj.x9, obj.y9, obj.z9,
-			-0.15 + (rand() - RAND_MAX / 2.0) / (RAND_MAX / 2.0) * 0.05, 0.02 + (rand() - RAND_MAX / 2.0) / (RAND_MAX / 2.0) * 0.1, -0.6 + (rand() - RAND_MAX / 2.0) / (RAND_MAX / 2.0) * 0.05,
+		glm::vec4 pos(obj.x9, obj.y9, obj.z9, 1.0);
+		glm::vec4 v(-0.15 + (rand() - RAND_MAX / 2.0) / (RAND_MAX / 2.0) * 0.05, 0.02 + (rand() - RAND_MAX / 2.0) / (RAND_MAX / 2.0) * 0.1, -0.6 + (rand() - RAND_MAX / 2.0) / (RAND_MAX / 2.0) * 0.05, 1.0);
+		pos = base * pos;
+		v = obj.rotation * v;
+		particle tmp(1.0, 1.0, 1.0, pos.x, pos.y, pos.z,
+			v.x, v.y, v.z,
 			0, -0.1, 0, 0.7, 0.7, 1.0);
 		spray3->particles.push_back(tmp);
-		particle tmp1(1.0, 1.0, 1.0, obj.x9, obj.y9, obj.z9,
-			0.15 + (rand() - RAND_MAX / 2.0) / (RAND_MAX / 2.0) * 0.05, 0.02 + (rand() - RAND_MAX / 2.0) / (RAND_MAX / 2.0) * 0.1, -0.6 + (rand() - RAND_MAX / 2.0) / (RAND_MAX / 2.0) * 0.05,
+
+		pos = glm::vec4(obj.x9, obj.y9, obj.z9, 1.0);
+		v = glm::vec4(0.15 + (rand() - RAND_MAX / 2.0) / (RAND_MAX / 2.0) * 0.05, 0.02 + (rand() - RAND_MAX / 2.0) / (RAND_MAX / 2.0) * 0.1, -0.6 + (rand() - RAND_MAX / 2.0) / (RAND_MAX / 2.0) * 0.05, 1.0);
+		pos = base * pos;
+		v = obj.rotation * v;
+		particle tmp1(1.0, 1.0, 1.0, pos.x, pos.y, pos.z,
+			v.x, v.y, v.z,
 			0, -0.1, 0, 0.7, 0.7, 1.0);
 		spray3->particles.push_back(tmp1);
-		particle tmp2(1.0, 1.0, 1.0, obj.x10_0, obj.y10, obj.z10,
-			-0.15 + (rand() - RAND_MAX / 2.0) / (RAND_MAX / 2.0) * 0.05, 0.02 + (rand() - RAND_MAX / 2.0) / (RAND_MAX / 2.0) * 0.1, -0.6 + (rand() - RAND_MAX / 2.0) / (RAND_MAX / 2.0) * 0.05,
+
+		pos = glm::vec4(obj.x10_0, obj.y10, obj.z10, 1.0);
+		v = glm::vec4(-0.15 + (rand() - RAND_MAX / 2.0) / (RAND_MAX / 2.0) * 0.05, 0.02 + (rand() - RAND_MAX / 2.0) / (RAND_MAX / 2.0) * 0.1, -0.6 + (rand() - RAND_MAX / 2.0) / (RAND_MAX / 2.0) * 0.05, 1.0);
+		pos = base * pos;
+		v = obj.rotation * v;
+		particle tmp2(1.0, 1.0, 1.0, pos.x, pos.y, pos.z,
+			v.x, v.y, v.z,
 			0, -0.1, 0, 0.7, 0.7, 1.0);
 		spray3->particles.push_back(tmp2);
-		particle tmp3(1.0, 1.0, 1.0, obj.x10_1, obj.y10, obj.z10,
-			0.15 + (rand() - RAND_MAX / 2.0) / (RAND_MAX / 2.0) * 0.05, 0.02 + (rand() - RAND_MAX / 2.0) / (RAND_MAX / 2.0) * 0.1, -0.6 + (rand() - RAND_MAX / 2.0) / (RAND_MAX / 2.0) * 0.05,
+
+		pos = glm::vec4(obj.x10_1, obj.y10, obj.z10, 1.0);
+		v = glm::vec4(0.15 + (rand() - RAND_MAX / 2.0) / (RAND_MAX / 2.0) * 0.05, 0.02 + (rand() - RAND_MAX / 2.0) / (RAND_MAX / 2.0) * 0.1, -0.6 + (rand() - RAND_MAX / 2.0) / (RAND_MAX / 2.0) * 0.05, 1.0);
+		pos = base * pos;
+		v = obj.rotation * v;
+		particle tmp3(1.0, 1.0, 1.0, pos.x, pos.y, pos.z,
+			v.x, v.y, v.z,
 			0, -0.1, 0, 0.7, 0.7, 1.0);
 		spray3->particles.push_back(tmp3);
 	}
@@ -174,6 +211,7 @@ int main(int argc, char** argv)
 		std::system("pause");
 		return -1;
 	}
+	the_model = &objModel;
 	particle_system particle_systems[20];
 	// Section2 准备着色器程序
 	Shader shader("model.vertex", "model.frag");
@@ -242,8 +280,8 @@ int main(int argc, char** argv)
 			1, GL_FALSE, glm::value_ptr(projection));
 		glUniformMatrix4fv(glGetUniformLocation(shader.programId, "view"),
 			1, GL_FALSE, glm::value_ptr(view));
-		glm::mat4 model;
-		model = glm::scale(model, glm::vec3(1.5f, 1.5f, 1.5f)); // 适当缩小模型
+		glm::mat4 model = objModel.movement * objModel.rotation;
+		//model = glm::scale(model, glm::vec3(1.5f, 1.5f, 1.5f)); // 适当缩放模型
 		model = glm::translate(model, glm::vec3(0.0f, -0.5f, 0.0f)); // 适当下调位置
 		glUniformMatrix4fv(glGetUniformLocation(shader.programId, "model"),
 			1, GL_FALSE, glm::value_ptr(model));
@@ -282,7 +320,7 @@ int main(int argc, char** argv)
 		glUniformMatrix4fv(glGetUniformLocation(particle_shader.programId, "view"),
 			1, GL_FALSE, glm::value_ptr(view1));
 		glm::mat4 model1;
-		model1 = glm::scale(model1, glm::vec3(1.5f, 1.5f, 1.5f)); // 适当缩小模型
+		//model1 = glm::scale(model1, glm::vec3(1.5f, 1.5f, 1.5f)); // 适当缩小模型
 		model1 = glm::translate(model1, glm::vec3(0.0f, -0.5f, 0.0f)); // 适当下调位置
 		glUniformMatrix4fv(glGetUniformLocation(particle_shader.programId, "model"),
 			1, GL_FALSE, glm::value_ptr(model1));
@@ -327,8 +365,18 @@ void key_callback(GLFWwindow* window, int key, int scancode, int action, int mod
 {
 	if (key >= 0 && key < 1024)
 	{
-		if (action == GLFW_PRESS)
+		if (action == GLFW_PRESS && !keyPressedStatus[key])
+		{
+			if (key == GLFW_KEY_W && the_model->move_speed < 4)
+				the_model->move_speed += 1;
+			if (key == GLFW_KEY_S && the_model->move_speed > -2)
+				the_model->move_speed -= 1;
+			if (key == GLFW_KEY_A && the_model->rotation_speed < 2)
+				the_model->rotation_speed += 1;
+			if (key == GLFW_KEY_D && the_model->rotation_speed > -2)
+				the_model->rotation_speed -= 1;
 			keyPressedStatus[key] = true;
+		}
 		else if (action == GLFW_RELEASE)
 			keyPressedStatus[key] = false;
 	}
@@ -362,13 +410,23 @@ void mouse_scroll_callback(GLFWwindow* window, double xoffset, double yoffset)
 // 由相机辅助类处理键盘控制
 void do_movement()
 {
-	
-	if (keyPressedStatus[GLFW_KEY_W])
+	/*if (keyPressedStatus[GLFW_KEY_W])
 		camera.handleKeyPress(FORWARD, deltaTime);
 	if (keyPressedStatus[GLFW_KEY_S])
 		camera.handleKeyPress(BACKWARD, deltaTime);
 	if (keyPressedStatus[GLFW_KEY_A])
 		camera.handleKeyPress(LEFT, deltaTime);
 	if (keyPressedStatus[GLFW_KEY_D])
-		camera.handleKeyPress(RIGHT, deltaTime);
+		camera.handleKeyPress(RIGHT, deltaTime);*/
+	glm::vec4 pos(camera.position.x, camera.position.y, camera.position.z, 1.0);
+	glm::mat4 unit(
+		1.0, 0.0, 0.0, 0.0,
+		0.0, 1.0, 0.0, 0.0,
+		0.0, 0.0, 1.0, 0.0,
+		0.0, 0.0, 0.0, 1.0);
+	pos = glm::translate(unit, glm::vec3(the_model->dir[0], the_model->dir[1], the_model->dir[2])
+		* (the_model->speed_unit * the_model->move_speed)) * pos;
+	camera.position.x = pos.x;
+	camera.position.y = pos.y;
+	camera.position.z = pos.z;
 }
