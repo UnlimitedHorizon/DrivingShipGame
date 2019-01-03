@@ -50,10 +50,11 @@ Model *the_model;
 void particles_animation(GLfloat delta, const Model &obj, particle_system p[])
 {
 	//smoke1 animation
+	const float rho = 2.0;
 	glm::mat4 base = obj.movement * obj.rotation;
 	particle_system *smoke1 = &p[0];
 	smoke1->animation(delta);
-	for (int i = 0; i < fmin(delta * 1000, 1000); ++i)
+	for (int i = 0; i < fmin(delta * 1000 * rho, 1000); ++i)
 	{
 		glm::vec4 pos(obj.x7, obj.y7, obj.z7, 1.0);
 		glm::vec4 v((rand() - RAND_MAX / 2.0) / (RAND_MAX / 2.0) * 0.05, 0.3 + (rand() - RAND_MAX / 2.0) / (RAND_MAX / 2.0) * 0.05, (rand() - RAND_MAX / 2.0) / (RAND_MAX / 2.0) * 0.05, 1.0);
@@ -66,7 +67,7 @@ void particles_animation(GLfloat delta, const Model &obj, particle_system p[])
 	}
 	particle_system *smoke2 = &p[1];
 	smoke2->animation(delta);
-	for (int i = 0; i < fmin(delta * 1000, 1000); ++i)
+	for (int i = 0; i < fmin(delta * 1000 * rho, 1000); ++i)
 	{
 		glm::vec4 pos(obj.x8, obj.y8, obj.z8, 1.0);
 		glm::vec4 v((rand() - RAND_MAX / 2.0) / (RAND_MAX / 2.0) * 0.05, 0.3 + (rand() - RAND_MAX / 2.0) / (RAND_MAX / 2.0) * 0.05, (rand() - RAND_MAX / 2.0) / (RAND_MAX / 2.0) * 0.05, 1.0);
@@ -79,7 +80,7 @@ void particles_animation(GLfloat delta, const Model &obj, particle_system p[])
 	}
 	particle_system *spray = &p[2];
 	spray->animation(delta);
-	if (obj.move_speed > 0) for (int i = 0; i < fmin(delta * 1000, 1000); ++i)
+	if (obj.move_speed > 0) for (int i = 0; i < fmin(delta * 1000 * rho, 1000); ++i)
 	{
 		float x = rand() / (RAND_MAX + 0.0) * (obj.box1x1 - obj.box1x0) + obj.box1x0;
 		float y = rand() / (RAND_MAX + 0.0) * (obj.box1y1 - obj.box1y0) + obj.box1y0;
@@ -95,7 +96,7 @@ void particles_animation(GLfloat delta, const Model &obj, particle_system p[])
 	}
 	particle_system *spray2 = &p[3];
 	spray2->animation(delta);
-	if (obj.move_speed > 0) for (int i = 0; i < fmin(delta * 1000, 1000); ++i)
+	if (obj.move_speed > 0) for (int i = 0; i < fmin(delta * 1000 * rho, 1000); ++i)
 	{
 		float x = rand() / (RAND_MAX + 0.0) * (obj.box2x1 - obj.box2x0) + obj.box2x0;
 		float y = rand() / (RAND_MAX + 0.0) * (obj.box2y1 - obj.box2y0) + obj.box2y0;
@@ -111,7 +112,7 @@ void particles_animation(GLfloat delta, const Model &obj, particle_system p[])
 	}
 	particle_system *spray3 = &p[4];
 	spray3->animation(delta);
-	if (obj.move_speed > 0) for (int i = 0; i < fmin(delta * 1000, 1000); ++i)
+	if (obj.move_speed > 0) for (int i = 0; i < fmin(delta * 1000 * rho, 1000); ++i)
 	{
 		glm::vec4 pos(obj.x9, obj.y9, obj.z9, 1.0);
 		glm::vec4 v(-0.15 + (rand() - RAND_MAX / 2.0) / (RAND_MAX / 2.0) * 0.05, 0.02 + (rand() - RAND_MAX / 2.0) / (RAND_MAX / 2.0) * 0.1, -0.6 + (rand() - RAND_MAX / 2.0) / (RAND_MAX / 2.0) * 0.05, 1.0);
@@ -213,10 +214,89 @@ int main(int argc, char** argv)
 	}
 	the_model = &objModel;
 	particle_system particle_systems[20];
+
+	//Section2 顶点属性数据
+	// 指定包围盒的顶点属性 位置
+	GLfloat skyboxVertices[] = {
+		// 背面
+		-1.0f, 1.0f, -1.0f,		// A
+		-1.0f, -1.0f, -1.0f,	// B
+		1.0f, -1.0f, -1.0f,		// C
+		1.0f, -1.0f, -1.0f,		// C
+		1.0f, 1.0f, -1.0f,		// D
+		-1.0f, 1.0f, -1.0f,		// A
+
+		// 左侧面
+		-1.0f, -1.0f, 1.0f,		// E
+		-1.0f, -1.0f, -1.0f,	// B
+		-1.0f, 1.0f, -1.0f,		// A
+		-1.0f, 1.0f, -1.0f,		// A
+		-1.0f, 1.0f, 1.0f,		// F
+		-1.0f, -1.0f, 1.0f,		// E
+
+		// 右侧面
+		1.0f, -1.0f, -1.0f,		// C
+		1.0f, -1.0f, 1.0f,		// G
+		1.0f, 1.0f, 1.0f,		// H
+		1.0f, 1.0f, 1.0f,		// H
+		1.0f, 1.0f, -1.0f,		// D
+		1.0f, -1.0f, -1.0f,		// C
+
+		// 正面
+		-1.0f, -1.0f, 1.0f,  // E
+		-1.0f, 1.0f, 1.0f,  // F
+		1.0f, 1.0f, 1.0f,  // H
+		1.0f, 1.0f, 1.0f,  // H
+		1.0f, -1.0f, 1.0f,  // G
+		-1.0f, -1.0f, 1.0f,  // E
+
+		// 顶面
+		-1.0f, 1.0f, -1.0f,  // A
+		1.0f, 1.0f, -1.0f,  // D
+		1.0f, 1.0f, 1.0f,  // H
+		1.0f, 1.0f, 1.0f,  // H
+		-1.0f, 1.0f, 1.0f,  // F
+		-1.0f, 1.0f, -1.0f,  // A
+
+		// 底面
+		-1.0f, -1.0f, -1.0f,  // B
+		-1.0f, -1.0f, 1.0f,   // E
+		1.0f, -1.0f, 1.0f,    // G
+		1.0f, -1.0f, 1.0f,    // G
+		1.0f, -1.0f, -1.0f,   // C
+		-1.0f, -1.0f, -1.0f,  // B
+	};
+
+	// Section3 准备缓存对象
+	GLuint skyBoxVAOId, skyBoxVBOId;
+	glGenVertexArrays(1, &skyBoxVAOId);
+	glGenBuffers(1, &skyBoxVBOId);
+	glBindVertexArray(skyBoxVAOId);
+	glBindBuffer(GL_ARRAY_BUFFER, skyBoxVBOId);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(skyboxVertices), skyboxVertices, GL_STATIC_DRAW);
+	// 顶点位置数据
+	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE,
+		3 * sizeof(GL_FLOAT), (GLvoid*)0);
+	glEnableVertexAttribArray(0);
+	glBindVertexArray(0);
+
+	// Section4 加载纹理
+	//GLuint cubeTextId = TextureHelper::load2DTexture("../resources/textures/container.jpg");
+	std::vector<const char*> faces;
+	faces.push_back("../resources/skyboxes/sky/sky_rt.jpg");
+	faces.push_back("../resources/skyboxes/sky/sky_lf.jpg");
+	faces.push_back("../resources/skyboxes/sky/sky_up.jpg");
+	faces.push_back("../resources/skyboxes/sky/sky_dn.jpg");
+	faces.push_back("../resources/skyboxes/sky/sky_bk.jpg");
+	faces.push_back("../resources/skyboxes/sky/sky_ft.jpg");
+	GLuint skyBoxTextId = TextureHelper::loadCubeMapTexture(faces);
+
 	// Section2 准备着色器程序
 	Shader shader("model.vertex", "model.frag");
 	Shader particle_shader("particle.vertex", "particle.frag");
 	Shader fluidShader("texture.vs", "texture.fs");
+	Shader skyBoxShader("skybox.vertex", "skybox.frag");
+
 
 	srand(1);
 	int rowSize = 100, columnSize = 100;    // 横纵总网格点数
@@ -232,16 +312,19 @@ int main(int argc, char** argv)
 		(columnSize + refreshColumnSize) / 2 + refreshCenterZ / step);
 	glm::mat4 modelFluid;
 	float transX = -rowSize * step / 2;
-	float transY = -0.8f;
+	float transY = -0.55f;
 	float transZ = -columnSize * step / 2;
 	modelFluid = glm::translate(modelFluid, glm::vec3(transX, transY, transZ)); // 调整位置
 	float scaleX = 1.0f;
-	float scaleY = 0.07f;
+	float scaleY = 0.05f;
 	float scaleZ = 1.0f;
 	modelFluid = glm::scale(modelFluid, glm::vec3(scaleX, scaleY, scaleZ)); // 调整比例
 
 	glEnable(GL_DEPTH_TEST);
 	glEnable(GL_CULL_FACE);
+
+	glDepthFunc(GL_LESS);
+
 	lastFrame = (GLfloat)glfwGetTime();
 	while (!glfwWindowShouldClose(window))
 	{
@@ -257,45 +340,71 @@ int main(int argc, char** argv)
 		glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-		shader.use();
-		// 设置光源属性 点光源
-		GLint lightAmbientLoc = glGetUniformLocation(shader.programId, "light.ambient");
-		GLint lightDiffuseLoc = glGetUniformLocation(shader.programId, "light.diffuse");
-		GLint lightSpecularLoc = glGetUniformLocation(shader.programId, "light.specular");
-		GLint lightPosLoc = glGetUniformLocation(shader.programId, "light.position");
-		GLint attConstant = glGetUniformLocation(shader.programId, "light.constant");
-		GLint attLinear = glGetUniformLocation(shader.programId, "light.linear");
-		GLint attQuadratic = glGetUniformLocation(shader.programId, "light.quadratic");
-		glUniform3f(lightAmbientLoc, 1.0f, 1.0f, 1.0f);
-		glUniform3f(lightDiffuseLoc, 1.0f, 1.0f, 1.0f);
-		glUniform3f(lightSpecularLoc, 1.0f, 1.0f, 1.0f);
-		glUniform3f(lightPosLoc, lampPos.x, lampPos.y, lampPos.z);
-		// 设置衰减系数
-		glUniform1f(attConstant, 1.0f);
-		glUniform1f(attLinear, 0.09f);
-		glUniform1f(attQuadratic, 0.032f);
-		// 设置观察者位置
-		GLint viewPosLoc = glGetUniformLocation(shader.programId, "viewPos");
-		glUniform3f(viewPosLoc, camera.position.x, camera.position.y, camera.position.z);
-		glm::mat4 projection = glm::perspective(camera.mouse_zoom,
+		
+		// 绘制skyBox
+		glDepthMask(GL_FALSE);
+		glDepthFunc(GL_LEQUAL); // 深度测试条件 小于等于
+		skyBoxShader.use();
+		glm::mat4 projection0 = glm::perspective(camera.mouse_zoom,
 			(GLfloat)(WINDOW_WIDTH) / WINDOW_HEIGHT, 1.0f, 100.0f); // 投影矩阵
-		glm::mat4 view = camera.getViewMatrix(); // 视变换矩阵
-		glUniformMatrix4fv(glGetUniformLocation(shader.programId, "projection"),
-			1, GL_FALSE, glm::value_ptr(projection));
-		glUniformMatrix4fv(glGetUniformLocation(shader.programId, "view"),
-			1, GL_FALSE, glm::value_ptr(view));
-		glm::mat4 model = objModel.movement * objModel.rotation;
-		//model = glm::scale(model, glm::vec3(1.5f, 1.5f, 1.5f)); // 适当缩放模型
-		model = glm::translate(model, glm::vec3(0.0f, -0.5f, 0.0f)); // 适当下调位置
-		glUniformMatrix4fv(glGetUniformLocation(shader.programId, "model"),
-			1, GL_FALSE, glm::value_ptr(model));
-		// 这里填写场景绘制代码
-		objModel.draw(shader);
+		glm::mat4 view0 = glm::mat4(glm::mat3(camera.getViewMatrix())); // 视变换矩阵 移除translate部分
+		glUniformMatrix4fv(glGetUniformLocation(skyBoxShader.programId, "projection"),
+			1, GL_FALSE, glm::value_ptr(projection0));
+		glUniformMatrix4fv(glGetUniformLocation(skyBoxShader.programId, "view"),
+			1, GL_FALSE, glm::value_ptr(view0));
 
+		glBindVertexArray(skyBoxVAOId);
+		glActiveTexture(GL_TEXTURE0);
+		glBindTexture(GL_TEXTURE_CUBE_MAP, skyBoxTextId); // 注意绑定到CUBE_MAP
+		glUniform1i(glGetUniformLocation(skyBoxShader.programId, "skybox"), 0);
+		glDrawArrays(GL_TRIANGLES, 0, 36);
+
+		//objModel.draw(shader); // 绘制物体
 		glBindVertexArray(0);
 		glUseProgram(0);
+		glDepthFunc(GL_LESS);
 
+			shader.use();
+			glDepthMask(GL_TRUE);
+			// 设置光源属性 点光源
+			GLint lightAmbientLoc = glGetUniformLocation(shader.programId, "light.ambient");
+			GLint lightDiffuseLoc = glGetUniformLocation(shader.programId, "light.diffuse");
+			GLint lightSpecularLoc = glGetUniformLocation(shader.programId, "light.specular");
+			GLint lightPosLoc = glGetUniformLocation(shader.programId, "light.position");
+			GLint attConstant = glGetUniformLocation(shader.programId, "light.constant");
+			GLint attLinear = glGetUniformLocation(shader.programId, "light.linear");
+			GLint attQuadratic = glGetUniformLocation(shader.programId, "light.quadratic");
+			glUniform3f(lightAmbientLoc, 1.0f, 1.0f, 1.0f);
+			glUniform3f(lightDiffuseLoc, 1.0f, 1.0f, 1.0f);
+			glUniform3f(lightSpecularLoc, 1.0f, 1.0f, 1.0f);
+			glUniform3f(lightPosLoc, lampPos.x, lampPos.y, lampPos.z);
+			// 设置衰减系数
+			glUniform1f(attConstant, 1.0f);
+			glUniform1f(attLinear, 0.00f);
+			glUniform1f(attQuadratic, 0.0f);
+			// 设置观察者位置
+			GLint viewPosLoc = glGetUniformLocation(shader.programId, "viewPos");
+			glUniform3f(viewPosLoc, camera.position.x, camera.position.y, camera.position.z);
+			glm::mat4 projection = glm::perspective(camera.mouse_zoom,
+				(GLfloat)(WINDOW_WIDTH) / WINDOW_HEIGHT, 1.0f, 100.0f); // 投影矩阵
+			glm::mat4 view = camera.getViewMatrix(); // 视变换矩阵
+			glUniformMatrix4fv(glGetUniformLocation(shader.programId, "projection"),
+				1, GL_FALSE, glm::value_ptr(projection));
+			glUniformMatrix4fv(glGetUniformLocation(shader.programId, "view"),
+				1, GL_FALSE, glm::value_ptr(view));
+			glm::mat4 model = objModel.movement * objModel.rotation;
+			//model = glm::scale(model, glm::vec3(1.5f, 1.5f, 1.5f)); // 适当缩放模型
+			model = glm::translate(model, glm::vec3(0.0f, -0.5f, 0.0f)); // 适当下调位置
+			glUniformMatrix4fv(glGetUniformLocation(shader.programId, "model"),
+				1, GL_FALSE, glm::value_ptr(model));
+			// 这里填写场景绘制代码
+			objModel.draw(shader); // 绘制物体
+			glBindVertexArray(0);
+			glUseProgram(0);
 
+			
+
+		
 		particle_shader.use();
 		// 设置光源属性 点光源
 		GLint lightAmbientLoc1 = glGetUniformLocation(particle_shader.programId, "light.ambient");
@@ -311,8 +420,8 @@ int main(int argc, char** argv)
 		glUniform3f(lightPosLoc1, lampPos.x, lampPos.y, lampPos.z);
 		// 设置衰减系数
 		glUniform1f(attConstant1, 1.0f);
-		glUniform1f(attLinear1, 0.09f);
-		glUniform1f(attQuadratic1, 0.032f);
+		glUniform1f(attLinear1, 0.0f);
+		glUniform1f(attQuadratic1, 0.0f);
 		// 设置观察者位置
 		GLint viewPosLoc1 = glGetUniformLocation(particle_shader.programId, "viewPos");
 		glUniform3f(viewPosLoc1, camera.position.x, camera.position.y, camera.position.z);
@@ -334,6 +443,7 @@ int main(int argc, char** argv)
 
 		glBindVertexArray(0);
 		glUseProgram(0);
+
 
 
 		fluidShader.use();
@@ -366,7 +476,8 @@ int main(int argc, char** argv)
 		glBindVertexArray(0);
 		glUseProgram(0);
 
-
+		
+		
 		glfwSwapBuffers(window); // 交换缓存
 	}
 	// 释放资源
