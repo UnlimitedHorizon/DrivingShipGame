@@ -21,7 +21,7 @@ public:
 	// t: 公式系数-时间, c: 公式系数-波速, mu: 公式系数-阻力系数
 	Fluid(int rowSize_, int columnSize_, float step_, GLfloat refreshTime_, float t, float c, float mu):
 		rowSize(rowSize_), columnSize(columnSize_), step(step_), refreshTime(refreshTime_),
-		currentRender(false), accumulateTime(0.0f)
+		display(true), currentRender(false), accumulateTime(0.0f)
 	{
 		// 计算迭代公式系数
 		float f1 = c * c * t * t / (step * step);
@@ -135,6 +135,15 @@ public:
 		return -(a * x + c * z + d) / b;
 	}
 
+	// 切换显示状态
+	void switchDisplay() {
+		display = !display;
+	}
+	// 设置显示状态
+	void setDisplay(bool display_) {
+		display = display_;
+	}
+
 	// 设定水面刷新范围  范围参数为数组下标写法  闭区间
 	bool setRefreshRange(int startX, int endX, int startZ, int endZ) {
 		startX = startX < 1 ? 1 : startX;
@@ -196,16 +205,18 @@ public:
 	}
 	// 绘制
 	void draw(const Shader& shader) const {
-		shader.use();
-		glBindVertexArray(this->VAOId);
-		glActiveTexture(GL_TEXTURE0);
-		glBindTexture(GL_TEXTURE_2D, texture);
-		glUniform1i(glGetUniformLocation(shader.programId, "textureImage"), 0);
+		if (display) {
+			shader.use();
+			glBindVertexArray(this->VAOId);
+			glActiveTexture(GL_TEXTURE0);
+			glBindTexture(GL_TEXTURE_2D, texture);
+			glUniform1i(glGetUniformLocation(shader.programId, "textureImage"), 0);
 
-		glDrawElements(GL_TRIANGLES, this->indices.size(), GL_UNSIGNED_INT, 0);
+			glDrawElements(GL_TRIANGLES, this->indices.size(), GL_UNSIGNED_INT, 0);
 
-		glBindVertexArray(0);
-		glUseProgram(0);
+			glBindVertexArray(0);
+			glUseProgram(0);
+		}
 	}
 
 private:
@@ -281,6 +292,7 @@ private:
 
 	float k1, k2, k3;    // 多项式系数
 
+	bool display;	// 控制是否显示
 	GLfloat refreshTime;
 	GLfloat accumulateTime;
 
