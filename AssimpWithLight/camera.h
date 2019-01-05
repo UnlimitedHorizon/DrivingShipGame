@@ -23,6 +23,7 @@ const GLfloat SPEED = 3.0f;
 const GLfloat MOUSE_SENSITIVTY = 0.05f;
 const GLfloat MOUSE_ZOOM = 45.0f;
 const float  MAX_PITCH_ANGLE = 89.0f; // ·ÀÖ¹ÍòÏòËø
+const float  MIN_PITCH_ANGLE = -15.0f; // ·ÀÖ¹¿´µ×
 
 class Camera
 {
@@ -92,8 +93,8 @@ public:
 	{
 		if (this->pitchAngle > MAX_PITCH_ANGLE)
 			this->pitchAngle = MAX_PITCH_ANGLE;
-		if (this->pitchAngle < -MAX_PITCH_ANGLE)
-			this->pitchAngle = -MAX_PITCH_ANGLE;
+		if (this->pitchAngle < MIN_PITCH_ANGLE)
+			this->pitchAngle = MIN_PITCH_ANGLE;
 		if (this->yawAngle < 0.0f)
 			this->yawAngle += 360.0f;
 	}

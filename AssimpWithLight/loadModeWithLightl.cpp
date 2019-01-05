@@ -43,7 +43,7 @@ bool firstMouseMove = true;
 bool keyPressedStatus[1024]; // 按键情况记录
 GLfloat deltaTime = 0.0f; // 当前帧和上一帧的时间差
 GLfloat lastFrame = 0.0f; // 上一帧时间
-Camera camera(glm::vec3(0.0f, 0.0f, 3.0f));
+Camera camera(glm::vec3(0.0f, 0.3f, -3.0f), glm::vec3(0.0, 1.0, 0.0), 180.0);
 glm::vec3 lampPos(1.2f, 1.2f, 1.2f);
 Model *the_model;
 
@@ -206,7 +206,7 @@ int main(int argc, char** argv)
 	
 	//Section1 加载模型数据
 	Model objModel;
-	if (!objModel.loadModel("Kutuzov1952.obj"))
+	if (!objModel.loadModel("Kutuzov1952.obj", 1))
 	{
 		glfwTerminate();
 		std::system("pause");
@@ -215,6 +215,13 @@ int main(int argc, char** argv)
 	the_model = &objModel;
 	particle_system particle_systems[20];
 
+	Model island;
+	if (!island.loadModel("Island.obj", 0))
+	{
+		glfwTerminate();
+		std::system("pause");
+		return -1;
+	}
 	//Section2 顶点属性数据
 	// 指定包围盒的顶点属性 位置
 	GLfloat skyboxVertices[] = {
@@ -364,47 +371,82 @@ int main(int argc, char** argv)
 		glUseProgram(0);
 		glDepthFunc(GL_LESS);
 
-			shader.use();
-			glDepthMask(GL_TRUE);
-			// 设置光源属性 点光源
-			GLint lightAmbientLoc = glGetUniformLocation(shader.programId, "light.ambient");
-			GLint lightDiffuseLoc = glGetUniformLocation(shader.programId, "light.diffuse");
-			GLint lightSpecularLoc = glGetUniformLocation(shader.programId, "light.specular");
-			GLint lightPosLoc = glGetUniformLocation(shader.programId, "light.position");
-			GLint attConstant = glGetUniformLocation(shader.programId, "light.constant");
-			GLint attLinear = glGetUniformLocation(shader.programId, "light.linear");
-			GLint attQuadratic = glGetUniformLocation(shader.programId, "light.quadratic");
-			glUniform3f(lightAmbientLoc, 1.0f, 1.0f, 1.0f);
-			glUniform3f(lightDiffuseLoc, 1.0f, 1.0f, 1.0f);
-			glUniform3f(lightSpecularLoc, 1.0f, 1.0f, 1.0f);
-			glUniform3f(lightPosLoc, lampPos.x, lampPos.y, lampPos.z);
-			// 设置衰减系数
-			glUniform1f(attConstant, 1.0f);
-			glUniform1f(attLinear, 0.00f);
-			glUniform1f(attQuadratic, 0.0f);
-			// 设置观察者位置
-			GLint viewPosLoc = glGetUniformLocation(shader.programId, "viewPos");
-			glUniform3f(viewPosLoc, camera.position.x, camera.position.y, camera.position.z);
-			glm::mat4 projection = glm::perspective(camera.mouse_zoom,
-				(GLfloat)(WINDOW_WIDTH) / WINDOW_HEIGHT, 1.0f, 100.0f); // 投影矩阵
-			glm::mat4 view = camera.getViewMatrix(); // 视变换矩阵
-			glUniformMatrix4fv(glGetUniformLocation(shader.programId, "projection"),
-				1, GL_FALSE, glm::value_ptr(projection));
-			glUniformMatrix4fv(glGetUniformLocation(shader.programId, "view"),
-				1, GL_FALSE, glm::value_ptr(view));
-			glm::mat4 model = objModel.movement * objModel.rotation;
-			//model = glm::scale(model, glm::vec3(1.5f, 1.5f, 1.5f)); // 适当缩放模型
-			model = glm::translate(model, glm::vec3(0.0f, -0.5f, 0.0f)); // 适当下调位置
-			glUniformMatrix4fv(glGetUniformLocation(shader.programId, "model"),
-				1, GL_FALSE, glm::value_ptr(model));
-			// 这里填写场景绘制代码
-			objModel.draw(shader); // 绘制物体
-			glBindVertexArray(0);
-			glUseProgram(0);
-
-			
-
+		shader.use();
+		glDepthMask(GL_TRUE);
+		// 设置光源属性 点光源
+		GLint lightAmbientLoc = glGetUniformLocation(shader.programId, "light.ambient");
+		GLint lightDiffuseLoc = glGetUniformLocation(shader.programId, "light.diffuse");
+		GLint lightSpecularLoc = glGetUniformLocation(shader.programId, "light.specular");
+		GLint lightPosLoc = glGetUniformLocation(shader.programId, "light.position");
+		GLint attConstant = glGetUniformLocation(shader.programId, "light.constant");
+		GLint attLinear = glGetUniformLocation(shader.programId, "light.linear");
+		GLint attQuadratic = glGetUniformLocation(shader.programId, "light.quadratic");
+		glUniform3f(lightAmbientLoc, 1.0f, 1.0f, 1.0f);
+		glUniform3f(lightDiffuseLoc, 1.0f, 1.0f, 1.0f);
+		glUniform3f(lightSpecularLoc, 1.0f, 1.0f, 1.0f);
+		glUniform3f(lightPosLoc, lampPos.x, lampPos.y, lampPos.z);
+		// 设置衰减系数
+		glUniform1f(attConstant, 1.0f);
+		glUniform1f(attLinear, 0.00f);
+		glUniform1f(attQuadratic, 0.0f);
+		// 设置观察者位置
+		GLint viewPosLoc = glGetUniformLocation(shader.programId, "viewPos");
+		glUniform3f(viewPosLoc, camera.position.x, camera.position.y, camera.position.z);
+		glm::mat4 projection = glm::perspective(camera.mouse_zoom,
+			(GLfloat)(WINDOW_WIDTH) / WINDOW_HEIGHT, 1.0f, 100.0f); // 投影矩阵
+		glm::mat4 view = camera.getViewMatrix(); // 视变换矩阵
+		glUniformMatrix4fv(glGetUniformLocation(shader.programId, "projection"),
+			1, GL_FALSE, glm::value_ptr(projection));
+		glUniformMatrix4fv(glGetUniformLocation(shader.programId, "view"),
+			1, GL_FALSE, glm::value_ptr(view));
+		glm::mat4 model = objModel.movement * objModel.rotation;
+		//model = glm::scale(model, glm::vec3(1.5f, 1.5f, 1.5f)); // 适当缩放模型
+		model = glm::translate(model, glm::vec3(0.0f, -0.5f, 0.0f)); // 适当下调位置
+		glUniformMatrix4fv(glGetUniformLocation(shader.programId, "model"),
+			1, GL_FALSE, glm::value_ptr(model));
+		// 这里填写场景绘制代码
+		objModel.draw(shader); // 绘制物体
+		glBindVertexArray(0);
+		glUseProgram(0);
 		
+		shader.use();
+		glDepthMask(GL_TRUE);
+		// 设置光源属性 点光源
+		GLint lightAmbientLoc2 = glGetUniformLocation(shader.programId, "light.ambient");
+		GLint lightDiffuseLoc2 = glGetUniformLocation(shader.programId, "light.diffuse");
+		GLint lightSpecularLoc2 = glGetUniformLocation(shader.programId, "light.specular");
+		GLint lightPosLoc2 = glGetUniformLocation(shader.programId, "light.position");
+		GLint attConstant2 = glGetUniformLocation(shader.programId, "light.constant");
+		GLint attLinear2 = glGetUniformLocation(shader.programId, "light.linear");
+		GLint attQuadratic2 = glGetUniformLocation(shader.programId, "light.quadratic");
+		glUniform3f(lightAmbientLoc2, 1.0f, 1.0f, 1.0f);
+		glUniform3f(lightDiffuseLoc2, 1.0f, 1.0f, 1.0f);
+		glUniform3f(lightSpecularLoc2, 1.0f, 1.0f, 1.0f);
+		glUniform3f(lightPosLoc2, lampPos.x, lampPos.y, lampPos.z);
+		// 设置衰减系数
+		glUniform1f(attConstant2, 1.0f);
+		glUniform1f(attLinear2, 0.00f);
+		glUniform1f(attQuadratic2, 0.0f);
+		// 设置观察者位置
+		GLint viewPosLoc2 = glGetUniformLocation(shader.programId, "viewPos");
+		glUniform3f(viewPosLoc2, camera.position.x, camera.position.y, camera.position.z);
+		glm::mat4 projection2 = glm::perspective(camera.mouse_zoom,
+			(GLfloat)(WINDOW_WIDTH) / WINDOW_HEIGHT, 1.0f, 100.0f); // 投影矩阵
+		glm::mat4 view2 = camera.getViewMatrix(); // 视变换矩阵
+		glUniformMatrix4fv(glGetUniformLocation(shader.programId, "projection"),
+			1, GL_FALSE, glm::value_ptr(projection2));
+		glUniformMatrix4fv(glGetUniformLocation(shader.programId, "view"),
+			1, GL_FALSE, glm::value_ptr(view2));
+		glm::mat4 model2;
+		model2 = glm::scale(model2, glm::vec3(0.01f, 0.01f, 0.01f)); // 适当缩放模型
+		model2 = glm::translate(model2, glm::vec3(200.0f, -56.0f, 200.0f)); // 适当下调位置
+		glUniformMatrix4fv(glGetUniformLocation(shader.programId, "model"),
+			1, GL_FALSE, glm::value_ptr(model2));
+		// 这里填写场景绘制代码
+		island.draw(shader); // 绘制物体
+		glBindVertexArray(0);
+		glUseProgram(0);
+
 		particle_shader.use();
 		// 设置光源属性 点光源
 		GLint lightAmbientLoc1 = glGetUniformLocation(particle_shader.programId, "light.ambient");
@@ -523,7 +565,7 @@ void mouse_move_callback(GLFWwindow* window, double xpos, double ypos)
 	lastX = xpos;
 	lastY = ypos;
 
-	camera.handleMouseMove(xoffset, yoffset);
+	camera.handleMouseMove(-xoffset, yoffset);
 }
 // 由相机辅助类处理鼠标滚轮控制
 void mouse_scroll_callback(GLFWwindow* window, double xoffset, double yoffset)
@@ -541,15 +583,15 @@ void do_movement()
 		camera.handleKeyPress(LEFT, deltaTime);
 	if (keyPressedStatus[GLFW_KEY_D])
 		camera.handleKeyPress(RIGHT, deltaTime);*/
-	glm::vec4 pos(camera.position.x, camera.position.y, camera.position.z, 1.0);
+	glm::vec4 pos(0, 0.3, -3.0, 1.0);
 	glm::mat4 unit(
 		1.0, 0.0, 0.0, 0.0,
 		0.0, 1.0, 0.0, 0.0,
 		0.0, 0.0, 1.0, 0.0,
 		0.0, 0.0, 0.0, 1.0);
-	pos = glm::translate(unit, glm::vec3(the_model->dir[0], the_model->dir[1], the_model->dir[2])
-		* (the_model->speed_unit * the_model->move_speed)) * pos;
+	pos = (the_model->movement) * pos;
 	camera.position.x = pos.x;
 	camera.position.y = pos.y;
 	camera.position.z = pos.z;
+	//camera.yawAngle -= the_model->omega_unit * the_model->rotation_speed * deltaTime / 2 / acos(-1) * 360;
 }
