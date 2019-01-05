@@ -47,6 +47,8 @@ Camera camera(glm::vec3(0.0f, 0.3f, -3.0f), glm::vec3(0.0, 1.0, 0.0), 180.0);
 glm::vec3 lampPos(1.2f, 1.2f, 1.2f);
 Model *the_model;
 
+bool waveDisplay = true;
+
 void particles_animation(GLfloat delta, const Model &obj, particle_system p[])
 {
 	//smoke1 animation
@@ -511,9 +513,11 @@ int main(int argc, char** argv)
 			(columnSize + refreshColumnSize) / 2 + refreshCenterZ / step);
 
 		f.animation(deltaTime);  // Ë®ÃæË¢ÐÂ
-		glDisable(GL_CULL_FACE);
-		f.draw(fluidShader);
-		glEnable(GL_CULL_FACE);
+		if (waveDisplay) {
+			glDisable(GL_CULL_FACE);
+			f.draw(fluidShader);
+			glEnable(GL_CULL_FACE);
+		}
 
 		glBindVertexArray(0);
 		glUseProgram(0);
@@ -540,6 +544,9 @@ void key_callback(GLFWwindow* window, int key, int scancode, int action, int mod
 				the_model->rotation_speed += 1;
 			if (key == GLFW_KEY_D && the_model->rotation_speed > -2)
 				the_model->rotation_speed -= 1;
+			if (key == GLFW_KEY_Q)
+				waveDisplay = !waveDisplay;
+
 			keyPressedStatus[key] = true;
 		}
 		else if (action == GLFW_RELEASE)
