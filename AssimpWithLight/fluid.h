@@ -2,6 +2,7 @@
 #include <glm/glm.hpp>
 
 #include <vector>
+#include <math.h>
 
 #include "Shader.h"
 #include "texture.h"
@@ -18,8 +19,8 @@ public:
 	// rowSize_: x网格点数, columnSize_: z网格点数, step: 网格点间距
 	// refreshTime_: 刷新时间间隔
 	// t: 公式系数-时间, c: 公式系数-波速, mu: 公式系数-阻力系数
-	Fluid(int rowSize_, int columnSize_, float step, GLfloat refreshTime_, float t, float c, float mu):
-		rowSize(rowSize_), columnSize(columnSize_), refreshTime(refreshTime_),
+	Fluid(int rowSize_, int columnSize_, float step_, GLfloat refreshTime_, float t, float c, float mu):
+		rowSize(rowSize_), columnSize(columnSize_), step(step_), refreshTime(refreshTime_),
 		currentRender(false), accumulateTime(0.0f)
 	{
 		// 计算迭代公式系数
@@ -86,6 +87,54 @@ public:
 		this->final();
 	}
 
+	// 获取指定坐标的水面高度
+	float getHeight(float x, float z) {
+		float transX = -rowSize * step / 2;
+		float transZ = -columnSize * step / 2;
+		x -= transX;
+		z -= transZ;
+
+		int x_min = floor(x / step);
+		int x_max = ceil(x / step);
+		x /= step;
+		int z_min = floor(z / step);
+		int z_max = ceil(z / step);
+		z /= step;
+		if (x_min < 0 || x_max >= rowSize || z_min < 0 || z_max >= columnSize) {
+			return 0;
+		}
+		int index11 = z_min * rowSize + x_min;
+		int index12 = z_max * rowSize + x_min;
+		int index21 = z_min * rowSize + x_max;
+		int index22 = z_max * rowSize + x_max;
+
+		// 当前使用的点集数据
+		std::vector<VertexFluid> &vd = currentRender ? vertData2 : vertData1;
+		
+		// 12(x_min, z_max), 22(x_max, z_max)
+		// 11(x_min, z_min), 21(x_max, z_min)
+		if (x_min == x_max) {
+			return linear_mapping(z_min, z_max, vd[index11].position.y, vd[index12].position.y, z);
+		}
+		if (z_min == z_max) {
+			return linear_mapping(x_min, x_max, vd[index11].position.y, vd[index21].position.y, x);
+		}
+		if (x == x_min) {
+			return linear_mapping(z_min, z_max, vd[index11].position.y, vd[index12].position.y, z);
+		}
+		// 两种三角片元分别为右下/左上 因此分界线 k = 1
+		auto p1 = vd[index11].position;
+		auto p2 = vd[index22].position;
+		auto p3 = ((z - z_min) / (x - x_min) > 1) ? vd[index12].position : vd[index21].position;
+		// y = -(ax + cz + d)/b
+		float a = (p2.y - p1.y)*(p3.z - p1.z) - (p2.z - p1.z)*(p3.y - p1.y);
+		float b = (p2.z - p1.z)*(p3.x - p1.x) - (p2.x - p1.x)*(p3.z - p1.z);
+		float c = (p2.x - p1.x)*(p3.y - p1.y) - (p2.y - p1.y)*(p3.x - p1.x);
+		float d = 0 - (a * p1.x + b * p1.y + c * p1.z);
+
+		return -(a * x + c * z + d) / b;
+	}
+
 	// 设定水面刷新范围  范围参数为数组下标写法  闭区间
 	bool setRefreshRange(int startX, int endX, int startZ, int endZ) {
 		startX = startX < 1 ? 1 : startX;
@@ -112,6 +161,11 @@ public:
 	}
 	// 强制刷新形状
 	void refresh(void) {
+		std::cout << getHeight(0.0, 0.0) << " ";
+		std::cout << getHeight(1.0, 1.0) << " ";
+		std::cout << getHeight(1.0, 0.5) << " ";
+		std::cout << getHeight(0.5, 1.0) << " ";
+		std::cout << getHeight(2.3, 2.5) << std::endl;
 		// 调用流体表面方程
 		currentRender = !currentRender;
 		std::vector<VertexFluid> &vd1 = currentRender ? vertData1 : vertData2;
@@ -161,8 +215,7 @@ public:
 
 private:
 	// 建立VAO, VBO, EBO等缓冲区
-	void setupFluid(void)
-	{
+	void setupFluid(void) {
 		glGenVertexArrays(1, &this->VAOId);
 		glGenBuffers(1, &this->VBOId);
 		glGenBuffers(1, &this->EBOId);
@@ -193,9 +246,32 @@ private:
 		glDeleteBuffers(1, &this->EBOId);
 	}
 
+	/**
+	 * @brief 线性映射 给定 a->x, b->y, 求目标原象点c对应象点
+	 * 		  [(c-b)x - (c-a)y]/(a-b)
+	 *		  若 a == b 则固定返回 x
+	 * @param original_a 原象点a
+	 * @param original_b 原象点b
+	 * @param aim_x 象点x
+	 * @param aim_y 象点y
+	 * @param original 目标原象点
+	 * @return 目标象点
+	 */
+	float linear_mapping(float original_a, float original_b,
+			float aim_x, float aim_y, float original) {
+		if (original_a - original_b < 0.000001) {
+			return aim_x;
+		}
+		return (
+			((original - original_b) * aim_x
+				- (original - original_a) * aim_y)
+			/ (original_a - original_b));
+	}
+
 private:
 	int rowSize;    // x网格数
 	int columnSize;    // z网格数
+	int step;	// w网格边长
 	int refreshRangeStartColumn;
 	int refreshRangeEndColumn;
 	int refreshRangeStartRow;
