@@ -161,11 +161,6 @@ public:
 	}
 	// 强制刷新形状
 	void refresh(void) {
-		std::cout << getHeight(0.0, 0.0) << " ";
-		std::cout << getHeight(1.0, 1.0) << " ";
-		std::cout << getHeight(1.0, 0.5) << " ";
-		std::cout << getHeight(0.5, 1.0) << " ";
-		std::cout << getHeight(2.3, 2.5) << std::endl;
 		// 调用流体表面方程
 		currentRender = !currentRender;
 		std::vector<VertexFluid> &vd1 = currentRender ? vertData1 : vertData2;
