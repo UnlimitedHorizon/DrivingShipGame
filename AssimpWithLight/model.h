@@ -24,7 +24,7 @@ public:
 		for (std::vector<Mesh>::const_iterator it = this->meshes.begin(); this->meshes.end() != it; ++it)
 			it->draw(shader);
 	}
-	bool loadModel(const std::string& filePath)
+	bool loadModel(const std::string& filePath, bool is_ship)
 	{
 		Assimp::Importer importer;
 		if (filePath.empty())
@@ -49,6 +49,8 @@ public:
 			return false;
 		}
 		//propeller1 axis and box
+		if (!is_ship)
+			return true;
 		double min = 1e10;
 		box1x0 = 1e10; box1x1 = -1e10;
 		box1y0 = 1e10; box1y1 = -1e10;
